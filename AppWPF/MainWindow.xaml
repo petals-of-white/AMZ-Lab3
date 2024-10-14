@@ -1,0 +1,40 @@
+﻿<Window
+    x:Class="Lab1.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Imaging="clr-namespace:FellowOakDicom.Imaging;assembly=fo-dicom.core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Lab1.App"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
+    xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
+    xmlns:views="clr-namespace:Lab1.Views;assembly=Lab1.Views"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    mc:Ignorable="d">
+    <Window.DataContext>
+        <viewmodels:App x:Name="mainState" />
+    </Window.DataContext>
+    <StackPanel x:Name="mainPanel" Orientation="Vertical">
+        <StackPanel x:Name="menu" Orientation="Horizontal">
+            <Button
+                x:Name="selectDicomBtn"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Click="OpenDicom_Click"
+                Content="Вибрати файл..." />
+            <Button
+                x:Name="roiBtn"
+                Width="108"
+                Margin="27,0,0,0"
+                Background="#FFCAEFB9"
+                Content="Зона дослідження" />
+        </StackPanel>
+        <views:DicomGLViewer
+            x:Name="viewer"
+            Width="200"
+            Height="200"
+            Dicoms="{Binding Path=Dicoms}" />
+    </StackPanel>
+</Window>

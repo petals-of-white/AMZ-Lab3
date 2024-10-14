@@ -1,0 +1,20 @@
+﻿<UserControl
+    x:Class="Lab1.Views.DicomGLViewer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Lab1.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <sharpGL:OpenGLControl
+        x:Name="glControl"
+        Width="auto"
+        Height="auto"
+        OpenGLDraw="DicomGLViewer_OpenGLDraw"
+        OpenGLInitialized="DicomGLViewer_OpenGLInitialized"
+        OpenGLVersion="OpenGL4_4"
+        RenderContextType="FBO" />
+</UserControl>
