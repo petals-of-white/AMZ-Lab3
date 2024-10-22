@@ -51,8 +51,8 @@ public partial class DicomGLViewer : UserControl
         Width = pixelData.Width;
         Height = pixelData.Height;
 
-        SetValue(DicomsProperty, dicomFiles);
-        //dicoms = dicomFiles;
+
+        dicoms = dicomFiles;
 
         RenderDicom();
 
