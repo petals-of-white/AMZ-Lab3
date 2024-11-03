@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Text;
-using FellowOakDicom;
+using Lab1.Models;
 using SharpGL;
 using static SharpGL.OpenGL;
 namespace Lab1.Views.Graphics;
@@ -29,9 +29,9 @@ public class DicomGLState
         gl.BindTexture(GL_TEXTURE_3D, texture3D);
     }
 
-    public DicomGLState(OpenGL gl)
+    public DicomGLState(OpenGL openGL)
     {
-        this.gl = gl;
+        gl = openGL;
         CreateVAO();
         CreateProgram();
         CreateTexture();
@@ -40,10 +40,18 @@ public class DicomGLState
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
 
-    public void LoadTextureData(int internalformat, int width, int height, int depth, uint format, uint type, nint pixels)
+    public unsafe void LoadDicomTexture(DicomManager dicomMng)
     {
+
+        var converter = new DicomToGLConverter(dicomMng);
+
         gl.BindTexture(GL_TEXTURE_3D, texture3D);
-        gl.TexImage3D(GL_TEXTURE_3D, 0, internalformat, width, height, depth, 0, format, type, pixels);
+        fixed (byte* ptr = converter.TextureData)
+        {
+            gl.TexImage3D(GL_TEXTURE_3D, 0, (int) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
+            0, converter.Format, converter.Type, (nint) ptr);
+        }
+
     }
 
     private void CreateTexture()
