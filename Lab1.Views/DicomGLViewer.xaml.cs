@@ -5,6 +5,7 @@ using FellowOakDicom.Imaging;
 using FellowOakDicom.Imaging.Mathematics;
 using FellowOakDicom.Imaging.Render;
 using FellowOakDicom.Media;
+using Lab1.Models;
 using Lab1.Views.Graphics;
 using SharpGL.WPF;
 
@@ -12,11 +13,19 @@ namespace Lab1.Views;
 
 public partial class DicomGLViewer : UserControl
 {
+    public DicomGLViewer()
+    {
+        InitializeComponent();
+    }
     private DicomFile []? dicoms;
     private DicomGLState? glState;
 
-    public static readonly DependencyProperty DicomsProperty =
-        DependencyProperty.Register("Dicoms", typeof(DicomFile []), typeof(DicomGLViewer), new PropertyMetadata(null));
+    //public static readonly DependencyProperty DicomsProperty =
+    //    DependencyProperty.Register(
+    //        name: nameof(Dicoms),
+    //        propertyType: typeof(DicomFile []),
+    //        ownerType: typeof(DicomGLViewer),
+    //        typeMetadata: new FrameworkPropertyMetadata(defaultValue: Array.Empty<DicomFile>()));
 
     public DicomFile []? Dicoms
     {
@@ -29,13 +38,18 @@ public partial class DicomGLViewer : UserControl
     //    get => (DicomFile []) GetValue(DicomsProperty);
     //    set
     //    {
+    //        SetValue(DicomsProperty, value);
     //        if (value is not null) AddDicom(value);
     //    }
     //}
 
     private void RenderDicom()
     {
-        throw new NotImplementedException();
+        if (dicoms is not null)
+        {
+            var dicomMng = new DicomManager(dicoms);
+            glState?.LoadDicomTexture(dicomMng);
+        }
     }
 
     public void RenderText(string text, int fontSize, Point2D topLeft, int width, int height, Color32 color)
@@ -55,36 +69,11 @@ public partial class DicomGLViewer : UserControl
         dicoms = dicomFiles;
 
         RenderDicom();
-
-
-        //int rows, columns;
-        //float pixelSpacing, spacingBetweenSlices, sliceThickness;
-
-        //List<string> errors = [];
-        //string errorCaption = "Помилка!";
-        //var msgBoxImg = MessageBoxImage.Error;
-        //var okBtn = MessageBoxButton.OK;
-
-        //if (!ds.TryGetSingleValue(DicomTag.Rows, out rows)) errors.Add("Не задано кількість рядків");
-        //if (!ds.TryGetSingleValue(DicomTag.Columns, out columns)) errors.Add("Не задано кількість стовпців");
-        //if (!ds.TryGetSingleValue(DicomTag.PixelSpacing, out pixelSpacing)) errors.Add("Не задано PixelSpacing");
-        //if (!ds.TryGetSingleValue(DicomTag.SpacingBetweenSlices, out spacingBetweenSlices)) errors.Add("Не задано SpacingBetweenSlides");
-        //if (!ds.TryGetSingleValue(DicomTag.SliceThickness, out sliceThickness)) errors.Add("Не задано SliceThickness");
-
-        //if (errors.Count > 0)
-        //{
-        //    MessageBox.Show(string.Join(Environment.NewLine, errors), errorCaption, okBtn, msgBoxImg);
-        //}
-        //else
-        //{
-
-        //    RenderDicom();
-        //}
     }
 
     private void DicomGLViewer_OpenGLDraw(object sender, OpenGLRoutedEventArgs args)
     {
-
+        glState?.DrawVertices();
     }
 
     private void DicomGLViewer_OpenGLInitialized(object sender, OpenGLRoutedEventArgs args)

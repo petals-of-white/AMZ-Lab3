@@ -2,6 +2,7 @@
 using System.Text;
 using Lab1.Models;
 using SharpGL;
+using SharpGL.Shaders;
 using static SharpGL.OpenGL;
 namespace Lab1.Views.Graphics;
 
@@ -14,12 +15,23 @@ public class DicomGLState
     private uint vao;
     private uint vbo;
     private uint texture3D;
+    private static float [] coords = {
+        -1, -1, 0,      0, 0, 0
+        -1, 1,  0,      0, 1, 0,
+        1,  -1, 0,      1, 0, 0,
+        1,  1,  0,      1, 1, 0
+    };
 
     public void UnbindAll()
     {
         gl.BindVertexArray(0);
         gl.UseProgram(0);
         gl.BindTexture(GL_TEXTURE_3D, 0);
+    }
+
+    public void DrawVertices()
+    {
+        gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 2);
     }
 
     public void BindALl()
@@ -33,6 +45,7 @@ public class DicomGLState
     {
         gl = openGL;
         CreateVAO();
+        UploadCoords();
         CreateProgram();
         CreateTexture();
     }
@@ -54,6 +67,11 @@ public class DicomGLState
 
     }
 
+    private void UploadCoords()
+    {
+        gl.BindVertexArray(vao);
+        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
+    }
     private void CreateTexture()
     {
         uint [] textures = new uint [1];
@@ -66,6 +84,10 @@ public class DicomGLState
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, [GL_LINEAR]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, [GL_LINEAR]);
         gl.BindTexture(GL_TEXTURE_3D, 0);
+
+        var samplerLoc = gl.GetUniformLocation(program, "outTexture");
+        gl.Uniform1(samplerLoc, 0);
+
     }
     private void CreateVAO()
     {
@@ -81,6 +103,9 @@ public class DicomGLState
 
         gl.VertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), 0);
         gl.EnableVertexAttribArray(0);
+
+        gl.VertexAttribPointer(1, 3, GL_FLOAT, false, 3 * sizeof(float), 3 * sizeof(float));
+        gl.EnableVertexAttribArray(1);
 
         gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
         gl.BindVertexArray(vaos [0]);
@@ -111,7 +136,7 @@ public class DicomGLState
         {
             StringBuilder infoLog = new(512);
             gl.GetShaderInfoLog(shader, 512, 0, infoLog);
-            Console.WriteLine($"Shader compilation error: {infoLog}.");
+            throw new ShaderCompilationException(infoLog.ToString());
         }
         return shader;
     }

@@ -34,7 +34,6 @@
         <views:DicomGLViewer
             x:Name="viewer"
             Width="200"
-            Height="200"
-            Dicoms="{Binding Path=Dicoms}" />
+            Height="200"/>
     </StackPanel>
 </Window>

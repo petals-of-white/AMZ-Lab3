@@ -7,7 +7,8 @@ namespace Lab1.ViewModels;
 public class App : SimpleNotifier
 {
     RectangleROITool? roiTool;
-    ObservableCollection<DicomFile>? dicoms;
+    ObservableCollection<DicomFile> dicoms = [];
+
     public RectangleROITool? ROITool
     {
         get => roiTool; set
@@ -17,7 +18,7 @@ public class App : SimpleNotifier
         }
     }
 
-    public ObservableCollection<DicomFile>? Dicoms
+    public ObservableCollection<DicomFile> Dicoms
     {
         get => dicoms; set
         {

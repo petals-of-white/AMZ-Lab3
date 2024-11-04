@@ -46,16 +46,28 @@ public class DicomManager
         {
 
             case ([var first, ..]):
-                DicomManager mng = new(first);
+
+                var ds = first.Dataset;
+                var pxData = DicomPixelData.Create(ds);
+
+                pixelData = pxData;
+
+                BitDepth = pixelData.BitDepth;
+                Height = pixelData.Height;
+                Width = pixelData.Width;
+                PhotometricInterpretation = pixelData.PhotometricInterpretation;
+                PixelRepresentation = pixelData.PixelRepresentation;
+
                 dicomFiles.Skip(1).
                     SelectMany((file) => EnumerateFrames(DicomPixelData.Create(file.Dataset))).
                     Each((pxData) => pixelData!.AddFrame(pxData));
+
 
                 break;
             default:
                 throw new ArgumentException("dicomFiles should contain at leasst one file.", nameof(dicomFiles));
         }
-        throw new NotImplementedException();
+
     }
 
 

@@ -10,7 +10,6 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        //mainState = new ViewModel.App();
         InitializeComponent();
     }
 
@@ -24,6 +23,7 @@ public partial class MainWindow : Window
             mainState.Dicoms = new ObservableCollection<DicomFile>(dicoms);
             viewer.AddDicom(dicoms);
         }
+
     }
 
 }

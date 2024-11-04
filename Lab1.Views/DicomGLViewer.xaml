@@ -16,5 +16,5 @@
         OpenGLDraw="DicomGLViewer_OpenGLDraw"
         OpenGLInitialized="DicomGLViewer_OpenGLInitialized"
         OpenGLVersion="OpenGL4_4"
-        RenderContextType="FBO" />
+        RenderContextType="FBO"  />
 </UserControl>
