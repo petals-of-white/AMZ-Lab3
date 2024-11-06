@@ -1,29 +1,39 @@
-﻿using System.Collections.ObjectModel;
-using FellowOakDicom;
-using Lab1.Models.Tools.ROI;
+﻿using Lab1.Models;
+using Lab1.ViewModels.Tools.ROI;
 
 namespace Lab1.ViewModels;
 
 public class App : SimpleNotifier
 {
-    RectangleROITool? roiTool;
-    ObservableCollection<DicomFile> dicoms = [];
+    private readonly Models.App appModel = new();
 
-    public RectangleROITool? ROITool
+    public RectangleROI RegionOfInterest
     {
-        get => roiTool; set
+        get => new(appModel.RegionOfInterest);
+        set
         {
-            roiTool = value;
-            NotifyPropertyChanged(nameof(ROITool));
+            appModel.RegionOfInterest = new() { IsActive = value.IsActive, IsSelected = value.IsSelected, Region = value.Region };
+            NotifyPropertyChanged(nameof(RegionOfInterest));
+        }
+    }
+    public float CurrentDepth
+    {
+        get => appModel.CurrentDepth;
+        set
+        {
+            appModel.CurrentDepth = value;
+            NotifyPropertyChanged(nameof(CurrentDepth));
         }
     }
 
-    public ObservableCollection<DicomFile> Dicoms
+
+    public DicomManager? Dicom
     {
-        get => dicoms; set
+        get => appModel.Dicom;
+        set
         {
-            dicoms = value;
-            NotifyPropertyChanged(nameof(Dicoms));
+            appModel.Dicom = value;
+            NotifyPropertyChanged(nameof(Dicom));
         }
     }
 }

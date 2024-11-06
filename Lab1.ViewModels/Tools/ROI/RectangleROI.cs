@@ -1,16 +1,17 @@
-﻿using Lab1.Models.Tools.Shapes;
+﻿using Lab1.Models.Shapes;
 using Model = Lab1.Models.Tools.ROI;
 
 namespace Lab1.ViewModels.Tools.ROI;
 
-public class RectangleROITool(Model.RectangleROITool roiModel) : SimpleNotifier
+public class RectangleROI(Model.RectangleROI rectangleROI) : SimpleNotifier
 {
-    private Model.RectangleROITool roiModel = roiModel;
+    private readonly Model.RectangleROI roiModel = rectangleROI;
     public bool IsSelected
     {
-        get => roiModel.IsSelected; set
+        get => roiModel.IsSelected;
+        set
         {
-            roiModel = roiModel with { IsSelected = value };
+            roiModel.IsSelected = value;
             NotifyPropertyChanged(nameof(IsSelected));
         }
     }
@@ -20,17 +21,17 @@ public class RectangleROITool(Model.RectangleROITool roiModel) : SimpleNotifier
         get => roiModel.IsActive;
         set
         {
-            roiModel = roiModel with { IsActive = value };
+            roiModel.IsActive = value;
             NotifyPropertyChanged(nameof(IsSelected));
         }
     }
 
-    public Rectangle Rectangle
+    public Rectangle? Region
     {
-        get => roiModel.Rect;
+        get => roiModel.Region;
         set
         {
-            roiModel = roiModel with { Rect = value };
+            roiModel.Region = value;
             NotifyPropertyChanged(nameof(Rectangle));
         }
     }
