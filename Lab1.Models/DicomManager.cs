@@ -36,10 +36,6 @@ public class DicomManager
         PixelRepresentation = pixelData.PixelRepresentation;
     }
 
-    private bool SamePatient(DicomManager dcm1, DicomManager dcm2)
-    {
-        throw new NotImplementedException();
-    }
     public DicomManager(IReadOnlyList<DicomFile> dicomFiles)
     {
         switch (dicomFiles)
@@ -65,7 +61,7 @@ public class DicomManager
 
                 break;
             default:
-                throw new ArgumentException("dicomFiles should contain at leasst one file.", nameof(dicomFiles));
+                throw new ArgumentException("dicomFiles should contain at least one file.", nameof(dicomFiles));
         }
 
     }
