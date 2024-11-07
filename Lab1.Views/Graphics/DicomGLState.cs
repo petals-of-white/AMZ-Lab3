@@ -1,21 +1,15 @@
 ﻿using System.IO;
-using System.Text;
 using Lab1.Models;
 using SharpGL;
 using SharpGL.Shaders;
 using static SharpGL.OpenGL;
+
 namespace Lab1.Views.Graphics;
+
 using MathNet.Numerics.LinearAlgebra;
+
 public class DicomGLState
 {
-    private readonly OpenGL gl;
-    private uint program;
-    private uint vertShader;
-    private uint fragShader;
-    private uint vao;
-    private uint vbo;
-
-    private uint texture3D;
     private static float [] coords = {
         -1, -1,     0, 0, 0
         -1, 1,      0, 1, 0,
@@ -23,38 +17,12 @@ public class DicomGLState
         1,  1,      1, 1, 0
     };
 
-    public void UnbindAll()
-    {
-        gl.BindVertexArray(0);
-        gl.UseProgram(0);
+    private readonly OpenGL gl;
+    private readonly ShaderProgram shaderProgram = new();
 
-        gl.BindTexture(GL_TEXTURE_3D, 0);
-    }
-
-    public void DrawVertices(float depth)
-    {
-        var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
-            { 1, 0, 0, 0 },
-            { 0, 1, 0, 0 },
-            { 0, 0, 1, depth },
-            { 0, 0, 0, 1 }
-        });
-
-
-        var tMatLoc = gl.GetUniformLocation(program, "u_transfrom_matrix");
-
-        gl.UniformMatrix4(tMatLoc, 1, false, transformMatrix.ToRowMajorArray());
-
-
-        gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 2);
-    }
-
-    public void BindALl()
-    {
-        gl.BindVertexArray(vao);
-        gl.UseProgram(program);
-        gl.BindTexture(GL_TEXTURE_3D, texture3D);
-    }
+    private uint texture3D;
+    private uint vao;
+    private uint vbo;
 
     public DicomGLState(OpenGL openGL)
     {
@@ -65,33 +33,57 @@ public class DicomGLState
         CreateTexture();
     }
 
-    public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
+
+    public static string VertShaderLoc { get; } = "Shaders/shader.vert";
+
+    public void DrawVertices(float depth)
+    {
+        var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
+            { 1, 0, 0, 0 },
+            { 0, 1, 0, 0 },
+            { 0, 0, 1, depth },
+            { 0, 0, 0, 1 }
+        });
+
+        shaderProgram.SetUniformMatrix4(gl, "u_transfrom_matrix", transformMatrix.ToRowMajorArray());
+
+        gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 2);
+    }
 
     public unsafe void LoadDicomTexture(DicomManager dicomMng)
     {
-
         var converter = new DicomToGLConverter(dicomMng);
 
         gl.BindTexture(GL_TEXTURE_3D, texture3D);
         fixed (byte* ptr = converter.TextureData)
         {
+            var npointer = (nint) ptr;
             gl.TexImage3D(GL_TEXTURE_3D, 0, (int) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
-            0, converter.Format, converter.Type, (nint) ptr);
+            0, converter.Format, converter.Type, npointer);
         }
-
     }
 
-    private void UploadCoords()
+    public void UnbindAll()
     {
-        gl.BindVertexArray(vao);
-        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
+        gl.BindVertexArray(0);
+        gl.UseProgram(0);
+
+        gl.BindTexture(GL_TEXTURE_3D, 0);
     }
+
+    private void CreateProgram()
+    {
+        shaderProgram.Create(gl, File.ReadAllText(VertShaderLoc), File.ReadAllText(FragShaderLoc), []);
+        shaderProgram.AssertValid(gl);
+    }
+
     private void CreateTexture()
     {
         uint [] textures = new uint [1];
         gl.GenTextures(1, textures);
         texture3D = textures [0];
+
         gl.BindTexture(GL_TEXTURE_3D, texture3D);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, [GL_REPEAT]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, [GL_REPEAT]);
@@ -100,10 +92,9 @@ public class DicomGLState
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, [GL_LINEAR]);
         gl.BindTexture(GL_TEXTURE_3D, 0);
 
-        var samplerLoc = gl.GetUniformLocation(program, "outTexture");
-        gl.Uniform1(samplerLoc, 0);
-
+        shaderProgram.SetUniform1(gl, "outTexture", 0);
     }
+
     private void CreateVAO()
     {
         uint [] vaos = new uint [1];
@@ -128,31 +119,10 @@ public class DicomGLState
         vbo = vbos [0];
         vao = vaos [0];
     }
-    private void CreateProgram()
-    {
-        program = gl.CreateProgram();
-        vertShader = CreateShader(GL_VERTEX_SHADER, File.ReadAllText(VertShaderLoc));
-        fragShader = CreateShader(GL_FRAGMENT_SHADER, File.ReadAllText(FragShaderLoc));
-        gl.AttachShader(program, vertShader);
-        gl.AttachShader(program, fragShader);
-        gl.LinkProgram(program);
-        gl.ValidateProgram(program);
-    }
-    private uint CreateShader(uint shaderType, string shaderSource)
-    {
-        uint shader = gl.CreateShader(shaderType);
-        gl.ShaderSource(shader, shaderSource);
-        gl.CompileShader(shader);
 
-        int [] res = [0];
-        gl.GetShader(shader, GL_COMPILE_STATUS, res);
-
-        if (res [0] == 0)
-        {
-            StringBuilder infoLog = new(512);
-            gl.GetShaderInfoLog(shader, 512, 0, infoLog);
-            throw new ShaderCompilationException(infoLog.ToString());
-        }
-        return shader;
+    private void UploadCoords()
+    {
+        gl.BindVertexArray(vao);
+        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
     }
 }

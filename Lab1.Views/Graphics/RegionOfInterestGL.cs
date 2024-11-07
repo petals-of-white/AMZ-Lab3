@@ -1,98 +1,82 @@
-﻿using System.Drawing;
-using System.IO;
-using System.Text;
-using FellowOakDicom.Imaging;
+﻿using System.IO;
 using FellowOakDicom.Imaging.Mathematics;
+using Lab1.Views.Colors;
 using SharpGL;
 using SharpGL.Shaders;
-using static SharpGL.OpenGL;
+using SharpGL.VertexBuffers;
 
 namespace Lab1.Views.Graphics;
 
 public class RegionOfInterestGL
 {
+    private readonly VertexBuffer contourBuffer = new();
     private readonly OpenGL gl;
-    private uint vbo, vao, vertShader, fragShader, program;
-    private Point2D [] referencePoints;
-    public Color LineColor { get; set; }
-    public Color ReferencePointColor { get; set; }
+    private readonly VertexBuffer refPointsBuffer = new();
+    private readonly ShaderProgram shaderProgram = new();
+    private Point2D [] referencePoints = Array.Empty<Point2D>();
+    private Point2D [] regionContour = Array.Empty<Point2D>();
+
+    public RegionOfInterestGL(OpenGL opengl)
+    {
+        gl = opengl;
+        contourBuffer.Create(gl);
+        refPointsBuffer.Create(gl);
+        CreateProgram();
+    }
+
+    public static string FragShaderLoc { get; } = "Shaders/ROI.frag";
+    public static string VertShaderLoc { get; } = "Shaders/ROI.vert";
+    public RGBA<float> LineColor { get; set; }
+    public RGBA<float> ReferencePointColor { get; set; }
 
     public Point2D [] ReferencePoints
     {
         get => referencePoints;
         set
         {
-            gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
             var floats = value.
                 SelectMany((p2d) => new float [] { (float) p2d.X, (float) p2d.Y })
                 .ToArray();
 
-            gl.BufferData(GL_ARRAY_BUFFER, floats, GL_STATIC_DRAW);
-            gl.BindBuffer(GL_ARRAY_BUFFER, 0);
+            refPointsBuffer.SetData(gl, 0, floats, false, 2);
 
             referencePoints = value;
         }
     }
 
-    public RegionOfInterestGL(OpenGL opengl)
+    public Point2D [] RegionContour
     {
-        gl = opengl;
-        CreateVAO();
-        CreateProgram();
+        get => regionContour;
+        set
+        {
+            var floats = value.
+                SelectMany((p2d) => new float [] { (float) p2d.X, (float) p2d.Y })
+                .ToArray();
+
+            contourBuffer.SetData(gl, 0, floats, false, 2);
+
+            regionContour = value;
+        }
     }
 
+    public void DrawReferencePoints()
+    {
+        throw new NotImplementedException();
+    }
 
-    public static string FragShaderLoc { get; } = "Shaders/ROI.frag";
+    public void DrawRegionContour(uint mode)
+    {
+        shaderProgram.Bind(gl);
+        var colorLoc = shaderProgram.GetUniformLocation(gl, "u_color");
+        gl.Uniform4(colorLoc, LineColor.R, LineColor.G, LineColor.B, LineColor.A);
 
-    public static string VertShaderLoc { get; } = "Shaders/ROI.vert";
-
+        contourBuffer.Bind(gl);
+        gl.DrawArrays(mode, 0, regionContour.Length);
+    }
 
     private void CreateProgram()
     {
-        program = gl.CreateProgram();
-        vertShader = CreateShader(GL_VERTEX_SHADER, File.ReadAllText(VertShaderLoc));
-        fragShader = CreateShader(GL_FRAGMENT_SHADER, File.ReadAllText(FragShaderLoc));
-        gl.AttachShader(program, vertShader);
-        gl.AttachShader(program, fragShader);
-        gl.LinkProgram(program);
-        gl.ValidateProgram(program);
-    }
-
-    private uint CreateShader(uint shaderType, string shaderSource)
-    {
-        uint shader = gl.CreateShader(shaderType);
-        gl.ShaderSource(shader, shaderSource);
-        gl.CompileShader(shader);
-
-        int [] res = [0];
-        gl.GetShader(shader, GL_COMPILE_STATUS, res);
-
-        if (res [0] == 0)
-        {
-            StringBuilder infoLog = new(512);
-            gl.GetShaderInfoLog(shader, 512, 0, infoLog);
-            throw new ShaderCompilationException(infoLog.ToString());
-        }
-        return shader;
-    }
-
-    private void CreateVAO()
-    {
-        uint [] vaos = new uint [1];
-        uint [] vbos = new uint [1];
-
-        gl.GenVertexArrays(1, vaos);
-        gl.GenBuffers(1, vbos);
-        gl.BindVertexArray(vaos [0]);
-
-        gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
-        gl.VertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), 0);
-        gl.EnableVertexAttribArray(0);
-
-        gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
-        gl.BindVertexArray(vaos [0]);
-
-        vbo = vbos [0];
-        vao = vaos [0];
+        shaderProgram.Create(gl, File.ReadAllText(VertShaderLoc), File.ReadAllText(FragShaderLoc), []);
+        shaderProgram.AssertValid(gl);
     }
 }
