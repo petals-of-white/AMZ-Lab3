@@ -18,7 +18,10 @@ public class DicomToGLConverter(DicomManager dicom)
     public int Width => dicomManager.Width;
     public int Height => dicomManager.Height;
     public int Depth => dicomManager.Depth;
-    public byte [] TextureData => dicomManager.RawFrames.SelectMany((fr) => fr.Data).ToArray();
+
+    public byte [] TextureData => throw new NotImplementedException();
+        //dicomManager.
+        //dicomManager.RawFrames.SelectMany((fr) => fr.Data).ToArray();
     public uint Format => dicomManager.PhotometricInterpretation.Value switch
     {
 

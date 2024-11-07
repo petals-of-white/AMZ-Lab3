@@ -1,6 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
-using FellowOakDicom;
+﻿using System.Windows;
+
 namespace Lab1.App;
 
 /// <summary>
@@ -11,7 +10,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        viewer.App = 
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
@@ -20,12 +18,7 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true)
         {
             string [] files = dialog.FileNames;
-            var dicoms = files.Select((file) => DicomFile.Open(file)).ToArray();
-            //mainState.Dicom = new ObservableCollection<DicomFile>(dicoms);
-            mainState.Dicom = Models.DicomManager.FromFiles(files);
-            viewer.В(dicoms);
+            viewer.UploadDicom(Models.DicomManager.FromFiles(files));
         }
-
     }
-
 }
