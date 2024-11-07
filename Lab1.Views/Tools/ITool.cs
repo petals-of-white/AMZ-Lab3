@@ -1,16 +1,11 @@
-﻿namespace Lab1.Views.Tools;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public interface IOverlayTool
+namespace Lab1.Views.Tools;
+
+public interface ITool
 {
-    /// <summary>
-    /// Deactivate and hide tool overlay
-    /// </summary>
-    void Deactivate();
-
-    /// <summary>
-    /// Activate and draw tool overlay
-    /// </summary>
-    void Activate();
-    string ToolName { get; }
-    bool IsActivated { get; }
 }

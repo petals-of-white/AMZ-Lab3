@@ -5,7 +5,7 @@ using SharpGL;
 using SharpGL.Shaders;
 using static SharpGL.OpenGL;
 namespace Lab1.Views.Graphics;
-
+using MathNet.Numerics.LinearAlgebra;
 public class DicomGLState
 {
     private readonly OpenGL gl;
@@ -14,23 +14,38 @@ public class DicomGLState
     private uint fragShader;
     private uint vao;
     private uint vbo;
+
     private uint texture3D;
     private static float [] coords = {
-        -1, -1, 0,      0, 0, 0
-        -1, 1,  0,      0, 1, 0,
-        1,  -1, 0,      1, 0, 0,
-        1,  1,  0,      1, 1, 0
+        -1, -1,     0, 0, 0
+        -1, 1,      0, 1, 0,
+        1,  -1,     1, 0, 0,
+        1,  1,      1, 1, 0
     };
 
     public void UnbindAll()
     {
         gl.BindVertexArray(0);
         gl.UseProgram(0);
+
         gl.BindTexture(GL_TEXTURE_3D, 0);
     }
 
-    public void DrawVertices()
+    public void DrawVertices(float depth)
     {
+        var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
+            { 1, 0, 0, 0 },
+            { 0, 1, 0, 0 },
+            { 0, 0, 1, depth },
+            { 0, 0, 0, 1 }
+        });
+
+
+        var tMatLoc = gl.GetUniformLocation(program, "u_transfrom_matrix");
+
+        gl.UniformMatrix4(tMatLoc, 1, false, transformMatrix.ToRowMajorArray());
+
+
         gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 2);
     }
 
@@ -101,10 +116,10 @@ public class DicomGLState
 
         // buffer data...
 
-        gl.VertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), 0);
+        gl.VertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), 0);
         gl.EnableVertexAttribArray(0);
 
-        gl.VertexAttribPointer(1, 3, GL_FLOAT, false, 3 * sizeof(float), 3 * sizeof(float));
+        gl.VertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), 2 * sizeof(float));
         gl.EnableVertexAttribArray(1);
 
         gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);

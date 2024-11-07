@@ -11,6 +11,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        viewer.App = 
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
@@ -20,8 +21,9 @@ public partial class MainWindow : Window
         {
             string [] files = dialog.FileNames;
             var dicoms = files.Select((file) => DicomFile.Open(file)).ToArray();
-            mainState.Dicoms = new ObservableCollection<DicomFile>(dicoms);
-            viewer.AddDicom(dicoms);
+            //mainState.Dicom = new ObservableCollection<DicomFile>(dicoms);
+            mainState.Dicom = Models.DicomManager.FromFiles(files);
+            viewer.В(dicoms);
         }
 
     }

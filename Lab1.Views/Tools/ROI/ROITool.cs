@@ -1,32 +1,21 @@
 ﻿namespace Lab1.Views.Tools.ROI;
-
-using FellowOakDicom.Media;
-using Lab1.Views.Tools;
-
-
 public abstract class ROITool(DicomGLViewer img) : IOverlayTool
 {
-    public DicomGLViewer ViewImage { get; set; } = img;
-    public bool IsActivated { get; private set; }
-    public bool IsROIActive { get; private set; }
-    public string ToolName => "Зона дослідження";
-    public void DisplayInfo()
+    public DicomGLViewer ViewImage { get; } = img;
+    public bool IsShown { get; protected set; }
+    public bool IsROIActive { get; protected set; }
+    public virtual string ToolName => "Зона дослідження";
+    protected abstract void DisplayInfo();
+    protected abstract void DisplayRegion();
+    public void Show()
     {
-        throw new NotImplementedException();
+        DisplayRegion();
+        DisplayInfo();
+        IsShown = true;
     }
-    public abstract void DisplayRegion();
-    public void Highlight()
+    public void Hide()
     {
-        
-    }
-    public void Activate()
-    {
-        IsActivated = true;
-        throw new NotImplementedException();
-    }
-    public void Deactivate()
-    {
-        IsActivated = false;
+        IsShown = false;
         throw new NotImplementedException();
     }
 }
