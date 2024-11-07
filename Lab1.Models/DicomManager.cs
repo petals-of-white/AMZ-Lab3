@@ -7,21 +7,7 @@ namespace Lab1.Models;
 public class DicomManager
 {
     private DicomPixelData pixelData;
-    public IReadOnlyCollection<IByteBuffer> RawFrames => EnumerateFrames(pixelData).ToArray();
-    public BitDepth BitDepth { get; private set; }
-    public ushort Height { get; private set; }
-    public ushort Width { get; private set; }
-    public int Depth => pixelData.NumberOfFrames;
-    public PhotometricInterpretation PhotometricInterpretation { get; private set; }
-    public PixelRepresentation PixelRepresentation { get; private set; }
 
-    private static IEnumerable<IByteBuffer> EnumerateFrames(DicomPixelData pixelData)
-    {
-        for (var i = 0; i < pixelData.NumberOfFrames; i++)
-        {
-            yield return pixelData.GetFrame(i);
-        }
-    }
     public DicomManager(DicomFile dicomFile)
     {
         var ds = dicomFile.Dataset;
@@ -40,7 +26,6 @@ public class DicomManager
     {
         switch (dicomFiles)
         {
-
             case ([var first, ..]):
 
                 var ds = first.Dataset;
@@ -58,20 +43,35 @@ public class DicomManager
                     SelectMany((file) => EnumerateFrames(DicomPixelData.Create(file.Dataset))).
                     Each((pxData) => pixelData!.AddFrame(pxData));
 
-
                 break;
+
             default:
                 throw new ArgumentException("dicomFiles should contain at least one file.", nameof(dicomFiles));
         }
-
     }
 
+    public BitDepth BitDepth { get; private set; }
+    public int Depth => pixelData.NumberOfFrames;
+    public ushort Height { get; private set; }
+    public PhotometricInterpretation PhotometricInterpretation { get; private set; }
+    public PixelRepresentation PixelRepresentation { get; private set; }
+    public IReadOnlyCollection<IByteBuffer> RawFrames => EnumerateFrames(pixelData).ToArray();
+    public ushort Width { get; private set; }
 
-    public static DicomManager FromFile(string file) => new(DicomFile.Open(file));
-    public static DicomManager FromFiles(IEnumerable<string> files) => new(files.Select((f) => DicomFile.Open(f)).ToArray());
     public static DicomManager FromDicomFolder(string dicomFolder)
     {
         return FromFiles(Directory.EnumerateFiles("*.dcm"));
+    }
 
+    public static DicomManager FromFile(string file) => new(DicomFile.Open(file));
+
+    public static DicomManager FromFiles(IEnumerable<string> files) => new(files.Select((f) => DicomFile.Open(f)).ToArray());
+
+    private static IEnumerable<IByteBuffer> EnumerateFrames(DicomPixelData pixelData)
+    {
+        for (var i = 0; i < pixelData.NumberOfFrames; i++)
+        {
+            yield return pixelData.GetFrame(i);
+        }
     }
 }
