@@ -7,14 +7,15 @@ using static SharpGL.OpenGL;
 namespace Lab1.Views.Graphics;
 
 using MathNet.Numerics.LinearAlgebra;
+using SharpGL.Enumerations;
 
 public class DicomGLState
 {
     private static float [] coords = {
-        -1, -1,     0, 0, 0
-        -1, 1,      0, 1, 0,
-        1,  -1,     1, 0, 0,
-        1,  1,      1, 1, 0
+        -1f, -1f,     0f, 0f,
+        -1f, 1f,      0f, 1f,
+        1f,  -1f,     1f, 0f,
+        1f,  1f,      1f, 1f,
     };
 
     private readonly OpenGL gl;
@@ -27,28 +28,73 @@ public class DicomGLState
     public DicomGLState(OpenGL openGL)
     {
         gl = openGL;
-        CreateVAO();
-        UploadCoords();
+        while (gl.GetErrorCode() is not ErrorCode.NoError) ;
+
+        CreateVertices();
         CreateProgram();
         CreateTexture();
+
+        UnbindAll();
     }
 
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
-
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
+    public bool IsTextureLoaded { get; private set; } = false;
+
+    public static unsafe float [] GetBufferSubData(OpenGL gl, int elementsNumber)
+    {
+        var arr = new float [elementsNumber];
+        fixed (float* zuz = arr)
+        {
+            gl.GetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * elementsNumber, (nint) zuz);
+        }
+
+        return arr;
+    }
 
     public void DrawVertices(float depth)
     {
-        var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
+        if (IsTextureLoaded)
+        {
+            //BindAll();
+
+            var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
             { 1, 0, 0, 0 },
             { 0, 1, 0, 0 },
             { 0, 0, 1, depth },
             { 0, 0, 0, 1 }
         });
 
-        shaderProgram.SetUniformMatrix4(gl, "u_transfrom_matrix", transformMatrix.ToRowMajorArray());
+            gl.BindVertexArray(vao);
 
-        gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 2);
+            //gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
+            //var checkData = GetBufferSubData(gl, 16);
+
+            gl.BindTexture(GL_TEXTURE_3D, texture3D);
+
+            shaderProgram.Bind(gl);
+
+            ThrowIfGLError(gl);
+
+            //shaderProgram.SetUniformMatrix4(gl, "u_transform_matrix", transformMatrix.ToRowMajorArray());
+
+            //ThrowIfGLError(gl);
+
+            gl.DrawArrays(GL_TRIANGLES, 0, 4);
+
+            switch (shaderProgram.GetInfoLog(gl))
+            {
+                case "": break;
+                case (string nonempty): throw new Exception(nonempty);
+            }
+
+            // unbind
+            gl.BindVertexArray(0);
+            gl.BindTexture(GL_TEXTURE_3D, 0);
+            shaderProgram.Unbind(gl);
+
+            ThrowIfGLError(gl);
+        }
     }
 
     public unsafe void LoadDicomTexture(DicomManager dicomMng)
@@ -62,14 +108,46 @@ public class DicomGLState
             gl.TexImage3D(GL_TEXTURE_3D, 0, (int) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
             0, converter.Format, converter.Type, npointer);
         }
+
+        gl.BindTexture(GL_TEXTURE_3D, 0);
+
+        ThrowIfGLError(gl);
+
+        IsTextureLoaded = true;
     }
 
     public void UnbindAll()
     {
         gl.BindVertexArray(0);
-        gl.UseProgram(0);
+        gl.BindBuffer(GL_ARRAY_BUFFER, 0);
+
+        shaderProgram.Unbind(gl);
 
         gl.BindTexture(GL_TEXTURE_3D, 0);
+    }
+
+    private static void ThrowIfGLError(OpenGL gl)
+    {
+        var error = gl.GetErrorCode();
+        switch (error)
+        {
+            case ErrorCode.NoError:
+
+                break;
+
+            case (var other):
+                throw new Exception(gl.GetErrorDescription(Convert.ToUInt32(other)));
+        }
+    }
+
+    private void BindAll()
+    {
+        gl.BindVertexArray(vao);
+        gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        shaderProgram.Bind(gl);
+
+        gl.BindTexture(GL_TEXTURE_3D, texture3D);
     }
 
     private void CreateProgram()
@@ -84,45 +162,63 @@ public class DicomGLState
         gl.GenTextures(1, textures);
         texture3D = textures [0];
 
+        shaderProgram.Bind(gl);
+
+        gl.ActiveTexture(GL_TEXTURE0);
         gl.BindTexture(GL_TEXTURE_3D, texture3D);
-        gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, [GL_REPEAT]);
+        gl.TexParameter(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, [GL_REPEAT]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, [GL_REPEAT]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, [GL_REPEAT]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, [GL_LINEAR]);
         gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, [GL_LINEAR]);
-        gl.BindTexture(GL_TEXTURE_3D, 0);
 
-        shaderProgram.SetUniform1(gl, "outTexture", 0);
+        //var texUniLoc = gl.GetUniformLocation(shaderProgram.ShaderProgramObject, "u_texture");
+        //int sampler3d = 0;
+        //gl.Uniform1(texUniLoc, sampler3d);
+
+        // unbind all
+        gl.BindTexture(GL_TEXTURE_3D, 0);
+        shaderProgram.Unbind(gl);
+
+        // info log. WHY?
+        switch (shaderProgram.GetInfoLog(gl))
+        {
+            case "": break;
+            case (string nonempty): throw new Exception(nonempty);
+        }
+
+        ThrowIfGLError(gl);
     }
 
-    private void CreateVAO()
+    private void CreateVertices()
     {
         uint [] vaos = new uint [1];
         uint [] vbos = new uint [1];
         gl.GenVertexArrays(1, vaos);
-        gl.GenBuffers(1, vbos);
         gl.BindVertexArray(vaos [0]);
 
+        gl.GenBuffers(1, vbos);
         gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
+        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
+
+
+        ThrowIfGLError(gl);
 
         // buffer data...
-
-        gl.VertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), 0);
+        gl.VertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), 0);
         gl.EnableVertexAttribArray(0);
 
-        gl.VertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), 2 * sizeof(float));
+        gl.VertexAttribPointer(1, 2, GL_FLOAT, false, 4 * sizeof(float), 2 * sizeof(float));
         gl.EnableVertexAttribArray(1);
 
-        gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
-        gl.BindVertexArray(vaos [0]);
+        // unbindg vao
+        gl.BindVertexArray(0);
 
+        // unbind vbo
+        gl.BindBuffer(GL_ARRAY_BUFFER, 0);
         vbo = vbos [0];
         vao = vaos [0];
-    }
 
-    private void UploadCoords()
-    {
-        gl.BindVertexArray(vao);
-        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
+        ThrowIfGLError(gl);
     }
 }
