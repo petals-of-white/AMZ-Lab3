@@ -8,6 +8,8 @@ namespace Lab1.Views.Graphics;
 
 using MathNet.Numerics.LinearAlgebra;
 using SharpGL.Enumerations;
+using SharpGL.SceneGraph.Assets;
+using static OpenGLHelpers;
 
 public class DicomGLState
 {
@@ -28,6 +30,7 @@ public class DicomGLState
     public DicomGLState(OpenGL openGL)
     {
         gl = openGL;
+
         while (gl.GetErrorCode() is not ErrorCode.NoError) ;
 
         CreateVertices();
@@ -40,17 +43,6 @@ public class DicomGLState
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public bool IsTextureLoaded { get; private set; } = false;
-
-    public static unsafe float [] GetBufferSubData(OpenGL gl, int elementsNumber)
-    {
-        var arr = new float [elementsNumber];
-        fixed (float* zuz = arr)
-        {
-            gl.GetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * elementsNumber, (nint) zuz);
-        }
-
-        return arr;
-    }
 
     public void DrawVertices(float depth)
     {
@@ -67,20 +59,21 @@ public class DicomGLState
 
             gl.BindVertexArray(vao);
 
-            //gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
+            gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
             //var checkData = GetBufferSubData(gl, 16);
-
-            gl.BindTexture(GL_TEXTURE_3D, texture3D);
 
             shaderProgram.Bind(gl);
 
+            gl.ActiveTexture(GL_TEXTURE0);
+            gl.BindTexture(GL_TEXTURE_3D, texture3D);
+
             ThrowIfGLError(gl);
 
-            //shaderProgram.SetUniformMatrix4(gl, "u_transform_matrix", transformMatrix.ToRowMajorArray());
+            shaderProgram.SetUniformMatrix4(gl, "u_transform_matrix", transformMatrix.ToRowMajorArray());
 
-            //ThrowIfGLError(gl);
+            ThrowIfGLError(gl);
 
-            gl.DrawArrays(GL_TRIANGLES, 0, 4);
+            gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
             switch (shaderProgram.GetInfoLog(gl))
             {
@@ -90,6 +83,7 @@ public class DicomGLState
 
             // unbind
             gl.BindVertexArray(0);
+            gl.BindBuffer(GL_ARRAY_BUFFER, 0);
             gl.BindTexture(GL_TEXTURE_3D, 0);
             shaderProgram.Unbind(gl);
 
@@ -124,20 +118,6 @@ public class DicomGLState
         shaderProgram.Unbind(gl);
 
         gl.BindTexture(GL_TEXTURE_3D, 0);
-    }
-
-    private static void ThrowIfGLError(OpenGL gl)
-    {
-        var error = gl.GetErrorCode();
-        switch (error)
-        {
-            case ErrorCode.NoError:
-
-                break;
-
-            case (var other):
-                throw new Exception(gl.GetErrorDescription(Convert.ToUInt32(other)));
-        }
     }
 
     private void BindAll()
@@ -200,7 +180,6 @@ public class DicomGLState
         gl.GenBuffers(1, vbos);
         gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
         gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
-
 
         ThrowIfGLError(gl);
 
