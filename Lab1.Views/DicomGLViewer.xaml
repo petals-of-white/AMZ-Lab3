@@ -11,10 +11,10 @@
     mc:Ignorable="d">
     <sharpGL:OpenGLControl
         x:Name="glControl"
-        Width="auto"
-        Height="auto"
+        Width="256"
+        Height="256"
         OpenGLDraw="DicomGLViewer_OpenGLDraw"
         OpenGLInitialized="DicomGLViewer_OpenGLInitialized"
-        OpenGLVersion="OpenGL4_4" RenderContextType="FBO"
-         />
+        OpenGLVersion="OpenGL4_4"
+        RenderContextType="FBO" />
 </UserControl>

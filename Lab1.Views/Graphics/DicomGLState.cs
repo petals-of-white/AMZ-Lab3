@@ -1,19 +1,17 @@
 ﻿using System.IO;
 using Lab1.Models;
+using MathNet.Numerics.LinearAlgebra;
 using SharpGL;
+using SharpGL.Enumerations;
 using SharpGL.Shaders;
+using static Lab1.Views.Graphics.OpenGLHelpers;
 using static SharpGL.OpenGL;
 
 namespace Lab1.Views.Graphics;
 
-using MathNet.Numerics.LinearAlgebra;
-using SharpGL.Enumerations;
-using SharpGL.SceneGraph.Assets;
-using static OpenGLHelpers;
-
-public class DicomGLState
+public class DicomGLState : IDisposable
 {
-    private static float [] coords = {
+    private static readonly float [] coords = {
         -1f, -1f,     0f, 0f,
         -1f, 1f,      0f, 1f,
         1f,  -1f,     1f, 0f,
@@ -23,6 +21,7 @@ public class DicomGLState
     private readonly OpenGL gl;
     private readonly ShaderProgram shaderProgram = new();
 
+    private bool disposed;
     private uint texture3D;
     private uint vao;
     private uint vbo;
@@ -44,6 +43,22 @@ public class DicomGLState
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public bool IsTextureLoaded { get; private set; } = false;
 
+    public void Dispose()
+    {
+        if (!disposed)
+        {
+            UnbindAll();
+            gl.DeleteTextures(1, [texture3D]);
+            gl.DeleteVertexArrays(1, [vao]);
+            gl.DeleteBuffers(1, [vbo]);
+            shaderProgram.Delete(gl);
+
+            disposed = true;
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
     public void DrawVertices(float depth)
     {
         if (IsTextureLoaded)
@@ -63,7 +78,7 @@ public class DicomGLState
             //var checkData = GetBufferSubData(gl, 16);
 
             shaderProgram.Bind(gl);
-
+            
             gl.ActiveTexture(GL_TEXTURE0);
             gl.BindTexture(GL_TEXTURE_3D, texture3D);
 
@@ -200,4 +215,17 @@ public class DicomGLState
 
         ThrowIfGLError(gl);
     }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~DicomGLState()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~DicomGLState()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
 }

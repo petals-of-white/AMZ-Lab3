@@ -24,19 +24,22 @@ public partial class DicomGLViewer : UserControl
 
     private void DicomGLViewer_OpenGLDraw(object sender, OpenGLRoutedEventArgs args)
     {
-        if (GL is not null) OpenGLHelpers.ThrowIfGLError(GL);
+        
 
         //while (gl.GetErrorCode() is not ErrorCode.NoError);
 
         GL?.Clear(OpenGL.GL_COLOR_BUFFER_BIT);
+        
         glState?.DrawVertices(CurrentDepth);
+        
     }
 
     private void DicomGLViewer_OpenGLInitialized(object sender, OpenGLRoutedEventArgs args)
     {
         GL = args.OpenGL;
+        OpenGLHelpers.ThrowIfGLError(GL);
         GL.ClearColor(0.0f, 0.3f, 0.5f, 1f);
-
+        
         glState = new DicomGLState(GL);
     }
 }
