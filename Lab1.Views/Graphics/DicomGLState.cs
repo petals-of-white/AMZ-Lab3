@@ -1,11 +1,9 @@
 ﻿using System.IO;
 using Lab1.Models;
 using MathNet.Numerics.LinearAlgebra;
-using SharpGL;
-using SharpGL.Enumerations;
-using SharpGL.Shaders;
+using OpenTK.Compute.OpenCL;
+using OpenTK.Graphics.OpenGL;
 using static Lab1.Views.Graphics.OpenGLHelpers;
-using static SharpGL.OpenGL;
 
 namespace Lab1.Views.Graphics;
 
@@ -18,19 +16,15 @@ public class DicomGLState : IDisposable
         1f,  1f,      1f, 1f,
     };
 
-    private readonly OpenGL gl;
-    private readonly ShaderProgram shaderProgram = new();
-
     private bool disposed;
     private uint texture3D;
     private uint vao;
     private uint vbo;
+    private int vertShader, fragShader, program;
 
-    public DicomGLState(OpenGL openGL)
+    public DicomGLState()
     {
-        gl = openGL;
-
-        while (gl.GetErrorCode() is not ErrorCode.NoError) ;
+        while (GL.GetError() is not ErrorCode.NoError) ;
 
         CreateVertices();
         CreateProgram();
@@ -48,11 +42,12 @@ public class DicomGLState : IDisposable
         if (!disposed)
         {
             UnbindAll();
-            gl.DeleteTextures(1, [texture3D]);
-            gl.DeleteVertexArrays(1, [vao]);
-            gl.DeleteBuffers(1, [vbo]);
-            shaderProgram.Delete(gl);
-
+            GL.DeleteTextures(1, [texture3D]);
+            GL.DeleteVertexArrays(1, [vao]);
+            GL.DeleteBuffers(1, [vbo]);
+            GL.DeleteProgram(program);
+            GL.DeleteShader(fragShader);
+            GL.DeleteShader(vertShader);
             disposed = true;
         }
 
@@ -72,37 +67,33 @@ public class DicomGLState : IDisposable
             { 0, 0, 0, 1 }
         });
 
-            gl.BindVertexArray(vao);
+            GL.BindVertexArray(vao);
 
-            gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             //var checkData = GetBufferSubData(gl, 16);
 
-            shaderProgram.Bind(gl);
-            
-            gl.ActiveTexture(GL_TEXTURE0);
-            gl.BindTexture(GL_TEXTURE_3D, texture3D);
+            GL.UseProgram(program);
 
-            ThrowIfGLError(gl);
+            GL.ActiveTexture(TextureUnit.Texture0);
 
-            shaderProgram.SetUniformMatrix4(gl, "u_transform_matrix", transformMatrix.ToRowMajorArray());
+            GL.BindTexture(TextureTarget.Texture3D, texture3D);
 
-            ThrowIfGLError(gl);
+            ThrowIfGLError();
 
-            gl.DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            var transMatLoc = GL.GetUniformLocation(program, "u_transform_matrix");
 
-            switch (shaderProgram.GetInfoLog(gl))
-            {
-                case "": break;
-                case (string nonempty): throw new Exception(nonempty);
-            }
+            GL.UniformMatrix4(transMatLoc, 16, false, transformMatrix.ToRowMajorArray());
+
+            ThrowIfGLError();
+
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
 
             // unbind
-            gl.BindVertexArray(0);
-            gl.BindBuffer(GL_ARRAY_BUFFER, 0);
-            gl.BindTexture(GL_TEXTURE_3D, 0);
-            shaderProgram.Unbind(gl);
-
-            ThrowIfGLError(gl);
+            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindTexture(TextureTarget.Texture3D, 0);
+            GL.UseProgram(0);
+            ThrowIfGLError();
         }
     }
 
@@ -110,122 +101,131 @@ public class DicomGLState : IDisposable
     {
         var converter = new DicomToGLConverter(dicomMng);
 
-        gl.BindTexture(GL_TEXTURE_3D, texture3D);
+        GL.BindTexture(TextureTarget.Texture3D, texture3D);
         fixed (byte* ptr = converter.TextureData)
         {
             var npointer = (nint) ptr;
-            gl.TexImage3D(GL_TEXTURE_3D, 0, (int) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
-            0, converter.Format, converter.Type, npointer);
+            GL.TexImage3D(TextureTarget.Texture3D, 0, (PixelInternalFormat) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
+            0, (PixelFormat) converter.Format, (PixelType) converter.Type, npointer);
         }
 
-        gl.BindTexture(GL_TEXTURE_3D, 0);
+        GL.BindTexture(TextureTarget.Texture3D, 0);
 
-        ThrowIfGLError(gl);
+        ThrowIfGLError();
 
         IsTextureLoaded = true;
     }
 
     public void UnbindAll()
     {
-        gl.BindVertexArray(0);
-        gl.BindBuffer(GL_ARRAY_BUFFER, 0);
-
-        shaderProgram.Unbind(gl);
-
-        gl.BindTexture(GL_TEXTURE_3D, 0);
+        GL.BindVertexArray(0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.UseProgram(0);
+        GL.BindTexture(TextureTarget.Texture3D, 0);
     }
 
     private void BindAll()
     {
-        gl.BindVertexArray(vao);
-        gl.BindBuffer(GL_ARRAY_BUFFER, vbo);
+        GL.BindVertexArray(vao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
-        shaderProgram.Bind(gl);
+        GL.UseProgram(program);
 
-        gl.BindTexture(GL_TEXTURE_3D, texture3D);
+        GL.BindTexture(TextureTarget.Texture3D, texture3D);
     }
 
+
+    
     private void CreateProgram()
     {
-        shaderProgram.Create(gl, File.ReadAllText(VertShaderLoc), File.ReadAllText(FragShaderLoc), []);
-        shaderProgram.AssertValid(gl);
+        vertShader = MakeShader(ShaderType.VertexShader, File.ReadAllText(VertShaderLoc));
+        fragShader = MakeShader(ShaderType.FragmentShader, File.ReadAllText(FragShaderLoc));
+
+        program = GL.CreateProgram();
+        GL.AttachShader(program, vertShader);
+        GL.AttachShader(program, fragShader);
+        GL.LinkProgram(program);
+        GL.ValidateProgram(program);
+
+        // TODO: validate progam
     }
 
     private void CreateTexture()
     {
         uint [] textures = new uint [1];
-        gl.GenTextures(1, textures);
+        GL.GenTextures(1, textures);
         texture3D = textures [0];
 
-        shaderProgram.Bind(gl);
+        GL.UseProgram(program);
 
-        gl.ActiveTexture(GL_TEXTURE0);
-        gl.BindTexture(GL_TEXTURE_3D, texture3D);
-        gl.TexParameter(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, [GL_REPEAT]);
-        gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, [GL_REPEAT]);
-        gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, [GL_REPEAT]);
-        gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, [GL_LINEAR]);
-        gl.TexParameterI(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, [GL_LINEAR]);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture3D, texture3D);
+        
 
-        //var texUniLoc = gl.GetUniformLocation(shaderProgram.ShaderProgramObject, "u_texture");
-        //int sampler3d = 0;
-        //gl.Uniform1(texUniLoc, sampler3d);
+        ThrowIfGLError();
+
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+        ThrowIfGLError();
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+        ThrowIfGLError();
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int) TextureWrapMode.Repeat);
+        ThrowIfGLError();
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
+        ThrowIfGLError();
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int) TextureMinFilter.Linear);
+
+        ThrowIfGLError();
+
+        var texUniLoc = GL.GetUniformLocation(program, "u_texture");
+        int sampler3d = 0;
+        GL.Uniform1(texUniLoc, sampler3d);
+
+        ThrowIfGLError();
 
         // unbind all
-        gl.BindTexture(GL_TEXTURE_3D, 0);
-        shaderProgram.Unbind(gl);
+        GL.BindTexture(TextureTarget.Texture3D, 0);
+        GL.UseProgram(0);
 
         // info log. WHY?
-        switch (shaderProgram.GetInfoLog(gl))
-        {
-            case "": break;
-            case (string nonempty): throw new Exception(nonempty);
-        }
+        //switch (shaderProgram.GetInfoLog(gl))
+        //{
+        //    case "": break;
+        //    case (string nonempty): throw new Exception(nonempty);
+        //}
 
-        ThrowIfGLError(gl);
+        
     }
 
     private void CreateVertices()
     {
         uint [] vaos = new uint [1];
         uint [] vbos = new uint [1];
-        gl.GenVertexArrays(1, vaos);
-        gl.BindVertexArray(vaos [0]);
+        GL.GenVertexArrays(1, vaos);
+        GL.BindVertexArray(vaos [0]);
 
-        gl.GenBuffers(1, vbos);
-        gl.BindBuffer(GL_ARRAY_BUFFER, vbos [0]);
-        gl.BufferData(GL_ARRAY_BUFFER, coords, GL_STATIC_DRAW);
+        GL.GenBuffers(1, vbos);
 
-        ThrowIfGLError(gl);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, vbos [0]);
+        GL.BufferData(BufferTarget.ArrayBuffer, coords.Length * sizeof(float), coords, BufferUsageHint.StaticDraw);
+
+        ThrowIfGLError();
 
         // buffer data...
-        gl.VertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), 0);
-        gl.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
 
-        gl.VertexAttribPointer(1, 2, GL_FLOAT, false, 4 * sizeof(float), 2 * sizeof(float));
-        gl.EnableVertexAttribArray(1);
+        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
+        GL.EnableVertexAttribArray(1);
 
         // unbindg vao
-        gl.BindVertexArray(0);
+        GL.BindVertexArray(0);
 
         // unbind vbo
-        gl.BindBuffer(GL_ARRAY_BUFFER, 0);
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         vbo = vbos [0];
         vao = vaos [0];
 
-        ThrowIfGLError(gl);
+        ThrowIfGLError();
     }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~DicomGLState()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~DicomGLState()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
 }

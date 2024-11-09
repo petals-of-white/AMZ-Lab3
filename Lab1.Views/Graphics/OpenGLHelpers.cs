@@ -1,25 +1,34 @@
-﻿using SharpGL;
-using SharpGL.Enumerations;
-using static SharpGL.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Lab1.Views.Graphics;
 
 public static class OpenGLHelpers
 {
-    public static unsafe float [] GetBufferSubData(OpenGL gl, int elementsNumber)
+    public static unsafe float [] GetBufferSubData(int elementsNumber)
     {
         var arr = new float [elementsNumber];
         fixed (float* zuz = arr)
         {
-            gl.GetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * elementsNumber, (nint) zuz);
+            GL.GetBufferSubData(BufferTarget.ArrayBuffer, 0, sizeof(float) * elementsNumber, (nint) zuz);
         }
 
         return arr;
     }
 
-    public static void ThrowIfGLError(OpenGL gl)
+    public static int MakeShader(ShaderType shaderType, string source)
     {
-        var error = gl.GetErrorCode();
+        var shader = GL.CreateShader(shaderType);
+        GL.ShaderSource(shader, source);
+        GL.CompileShader(shader);
+        GL.GetShaderInfoLog(shader, out string info);
+
+        if (info != "") throw new Exception(info);
+        return shader;
+    }
+
+    public static void ThrowIfGLError()
+    {
+        var error = GL.GetError();
         switch (error)
         {
             case ErrorCode.NoError:
@@ -27,7 +36,7 @@ public static class OpenGLHelpers
                 break;
 
             case (var other):
-                throw new Exception(gl.GetErrorDescription(Convert.ToUInt32(other)));
+                throw new Exception(Enum.GetName(other));
         }
     }
 }

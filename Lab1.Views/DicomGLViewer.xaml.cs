@@ -1,9 +1,8 @@
 ﻿using System.Windows.Controls;
 using Lab1.Models;
 using Lab1.Views.Graphics;
-using SharpGL;
-using SharpGL.Enumerations;
-using SharpGL.WPF;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Wpf;
 
 namespace Lab1.Views;
 
@@ -15,31 +14,27 @@ public partial class DicomGLViewer : UserControl
     public DicomGLViewer()
     {
         InitializeComponent();
+        var settings = new GLWpfControlSettings()
+        {
+            MajorVersion = 4,
+            MinorVersion = 3
+        };
+
+        openTkControl.Start(settings);
+        
+
+        glState = new DicomGLState();
     }
 
     public float CurrentDepth { get; set; } = 0.0f;
-    public OpenGL? GL { get; set; }
+    //public OpenGL? GL { get; set; }
 
     public void UploadDicom(DicomManager dicomMng) => glState?.LoadDicomTexture(dicomMng);
 
-    private void DicomGLViewer_OpenGLDraw(object sender, OpenGLRoutedEventArgs args)
+    private void openTkControl_Render(TimeSpan obj)
     {
-        
-
-        //while (gl.GetErrorCode() is not ErrorCode.NoError);
-
-        GL?.Clear(OpenGL.GL_COLOR_BUFFER_BIT);
-        
+        GL.ClearColor(0, 0, 0, 1);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
         glState?.DrawVertices(CurrentDepth);
-        
-    }
-
-    private void DicomGLViewer_OpenGLInitialized(object sender, OpenGLRoutedEventArgs args)
-    {
-        GL = args.OpenGL;
-        OpenGLHelpers.ThrowIfGLError(GL);
-        GL.ClearColor(0.0f, 0.3f, 0.5f, 1f);
-        
-        glState = new DicomGLState(GL);
     }
 }
