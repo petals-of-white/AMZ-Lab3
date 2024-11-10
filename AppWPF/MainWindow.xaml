@@ -35,11 +35,6 @@
                 x:Name="viewer"
                 Width="512"
                 Height="512" />
-
-            <Image
-                x:Name="imgTest"
-                Width="100"
-                Height="100" />
         </StackPanel>
 
     </StackPanel>

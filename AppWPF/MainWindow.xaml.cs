@@ -11,7 +11,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        imgTest.Source = new DrawingImage().Drawing
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
