@@ -31,11 +31,11 @@
                 Background="#FFCAEFB9"
                 Content="Зона дослідження" />
 
-            <views:DicomGLViewer
+        </StackPanel>
+
+        <views:DicomGLViewer
                 x:Name="viewer"
                 Width="512"
                 Height="512" />
-        </StackPanel>
-
     </StackPanel>
 </Window>

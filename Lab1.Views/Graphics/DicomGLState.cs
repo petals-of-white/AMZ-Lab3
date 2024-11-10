@@ -82,7 +82,7 @@ public class DicomGLState : IDisposable
 
             var transMatLoc = GL.GetUniformLocation(program, "u_transform_matrix");
 
-            GL.UniformMatrix4(transMatLoc, 16, false, transformMatrix.ToRowMajorArray());
+            GL.UniformMatrix4(transMatLoc, 1, false, transformMatrix.ToRowMajorArray());
 
             ThrowIfGLError();
 
