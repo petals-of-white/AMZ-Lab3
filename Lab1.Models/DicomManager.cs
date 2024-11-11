@@ -6,20 +6,14 @@ namespace Lab1.Models;
 
 public class DicomManager
 {
-    private DicomPixelData pixelData;
+    private readonly DicomPixelData pixelData;
 
     public DicomManager(DicomFile dicomFile)
     {
         var ds = dicomFile.Dataset;
-        var pixelData = DicomPixelData.Create(ds);
+        var pixData = DicomPixelData.Create(ds);
 
-        this.pixelData = pixelData;
-
-        BitDepth = pixelData.BitDepth;
-        Height = pixelData.Height;
-        Width = pixelData.Width;
-        PhotometricInterpretation = pixelData.PhotometricInterpretation;
-        PixelRepresentation = pixelData.PixelRepresentation;
+        pixelData = pixData;
     }
 
     public DicomManager(IReadOnlyList<DicomFile> dicomFiles)
@@ -33,12 +27,6 @@ public class DicomManager
 
                 pixelData = pxData;
 
-                BitDepth = pixelData.BitDepth;
-                Height = pixelData.Height;
-                Width = pixelData.Width;
-                PhotometricInterpretation = pixelData.PhotometricInterpretation;
-                PixelRepresentation = pixelData.PixelRepresentation;
-
                 dicomFiles.Skip(1).
                     SelectMany((file) => EnumerateFrames(DicomPixelData.Create(file.Dataset))).
                     Each((pxData) => pixelData!.AddFrame(pxData));
@@ -50,13 +38,13 @@ public class DicomManager
         }
     }
 
-    public BitDepth BitDepth { get; private set; }
+    public BitDepth BitDepth => pixelData.BitDepth;
     public int Depth => pixelData.NumberOfFrames;
-    public ushort Height { get; private set; }
-    public PhotometricInterpretation PhotometricInterpretation { get; private set; }
-    public PixelRepresentation PixelRepresentation { get; private set; }
+    public ushort Height => pixelData.Height;
+    public PhotometricInterpretation PhotometricInterpretation => pixelData.PhotometricInterpretation;
+    public PixelRepresentation PixelRepresentation => pixelData.PixelRepresentation;
     public IReadOnlyCollection<IByteBuffer> RawFrames => EnumerateFrames(pixelData).ToArray();
-    public ushort Width { get; private set; }
+    public ushort Width => pixelData.Width;
 
     public static DicomManager FromDicomFolder(string dicomFolder)
     {
