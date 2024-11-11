@@ -63,7 +63,7 @@ public class DicomViewModel : SimpleNotifier
 
     private void AdvanceInDepth(int move)
     {
-        CurrentDepth += (move / CurrentDepth);
+        if (dicomManager is not null) CurrentDepth += ((float)move / dicomManager.Depth);
     }
 
     private void DisplayROI()

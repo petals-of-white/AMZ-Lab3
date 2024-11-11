@@ -51,7 +51,7 @@ public partial class DicomGLViewer : UserControl
 
     private void OpenTkControl_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        viewModel.AdvanceDepthCommand.Execute(e.Delta);
+        viewModel.AdvanceDepthCommand.Execute(int.Sign(e.Delta));
     }
 
     private void OpenTkControl_Render(TimeSpan obj)

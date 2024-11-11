@@ -41,7 +41,7 @@ public class DicomManager
     }
 
     public BitDepth BitDepth => pixelData.BitDepth;
-    public int Depth => pixelData.NumberOfFrames;
+    public int Depth => rawFrames.Count;
     public ushort Height => pixelData.Height;
     public PhotometricInterpretation PhotometricInterpretation => pixelData.PhotometricInterpretation;
     public PixelRepresentation PixelRepresentation => pixelData.PixelRepresentation;
@@ -55,7 +55,7 @@ public class DicomManager
 
     public static DicomManager FromFile(string file) => new(DicomFile.Open(file));
 
-    public static DicomManager FromFiles(IEnumerable<string> files) => new(files.Select((f) => DicomFile.Open(f)).ToArray());
+    public static DicomManager FromFiles(IEnumerable<string> files) => new(files.Order().Select((f) => DicomFile.Open(f)).ToArray());
 
     private static IEnumerable<IByteBuffer> EnumerateFrames(DicomPixelData pixelData)
     {
