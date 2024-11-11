@@ -26,8 +26,7 @@
                 Width="108"
                 Margin="27,0,0,0"
                 Background="#FFCAEFB9"
-                Content="Зона дослідження" />
-
+                Content="Зона дослідження" Command="{Binding ElementName=viewer, Path=ViewModel.DisplayROICommand}"/>
         </StackPanel>
 
         <views:DicomGLViewer

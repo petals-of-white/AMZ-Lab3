@@ -7,7 +7,7 @@ namespace Lab1.Views.Tools.ROI;
 public class RectangleROITool : ROITool
 {
     public override bool IsDisplayed => Tool.IsDisplayed;
-    public override PrimitiveType PrimitiveType => PrimitiveType.LineStrip;
+    public override PrimitiveType PrimitiveType => PrimitiveType.LineLoop;
     public RectangleROI Tool { get; set; } = new();
 
     protected override PointF [] Contour =>

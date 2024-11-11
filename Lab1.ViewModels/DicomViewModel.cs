@@ -15,7 +15,7 @@ public class DicomViewModel : SimpleNotifier
 
     public DicomViewModel()
     {
-        LoadDicomCommand = new RelayCommand<string>(LoadDicom);
+        SetDicomCommand = new RelayCommand<DicomManager>(SetDicom);
         SetPointCommand = new RelayCommand<PointF>(SetPoint);
         DisplayROICommand = new RelayCommand(DisplayROI);
         SelectRegionCommand = new RelayCommand<Models.Shapes.Rectangle>(SelectRegion);
@@ -47,8 +47,6 @@ public class DicomViewModel : SimpleNotifier
 
     public ICommand DisplayROICommand { get; }
 
-    public ICommand LoadDicomCommand { get; }
-
     public RectangleROI? SelectedROI
     {
         get => selectedROI;
@@ -60,7 +58,7 @@ public class DicomViewModel : SimpleNotifier
     }
 
     public ICommand SelectRegionCommand { get; }
-
+    public ICommand SetDicomCommand { get; }
     public ICommand SetPointCommand { get; }
 
     private void AdvanceInDepth(int move)
@@ -73,14 +71,14 @@ public class DicomViewModel : SimpleNotifier
         (SelectedROI ??= new RectangleROI() { IsActive = true, IsDisplayed = true }).IsDisplayed = true;
     }
 
-    private void LoadDicom(string filePath)
-    {
-        DicomManager = DicomManager.FromFile(filePath);
-    }
-
     private void SelectRegion(Models.Shapes.Rectangle region)
     {
         SelectedROI = new RectangleROI { Region = region, IsActive = true, IsDisplayed = true };
+    }
+
+    private void SetDicom(DicomManager dicom)
+    {
+        DicomManager = dicom;
     }
 
     private void SetPoint(PointF newPoint)
@@ -89,6 +87,7 @@ public class DicomViewModel : SimpleNotifier
         {
             var newRegion = new Models.Shapes.Rectangle { P1 = lastSetPoint, P2 = newPoint };
             SelectedROI.Region = newRegion;
+            NotifyPropertyChanged(nameof(SelectedROI));
             lastSetPoint = newPoint;
         }
     }

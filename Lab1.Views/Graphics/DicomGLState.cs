@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Lab1.Models;
 using MathNet.Numerics.LinearAlgebra;
-using OpenTK.Compute.OpenCL;
 using OpenTK.Graphics.OpenGL;
 using static Lab1.Views.Graphics.OpenGLHelpers;
 
@@ -66,13 +65,15 @@ public class DicomGLState : IDisposable
             { 0, 0, 1, depth },
             { 0, 0, 0, 1 }
         });
-
+            ThrowIfGLError();
             GL.BindVertexArray(vao);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             //var checkData = GetBufferSubData(gl, 16);
 
             GL.UseProgram(program);
+
+            ThrowIfGLError();
 
             GL.ActiveTexture(TextureUnit.Texture0);
 

@@ -46,6 +46,7 @@ public abstract class ROITool
     protected void DisplayRegion()
     {
         roiGL.DrawRegionContour(PrimitiveType);
-        roiGL.DrawReferencePoints();
+        
+        //roiGL.DrawReferencePoints();
     }
 }

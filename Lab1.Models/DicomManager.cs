@@ -24,6 +24,7 @@ public class DicomManager
 
                 var ds = first.Dataset;
                 var pxData = DicomPixelData.Create(ds);
+                
 
                 pixelData = pxData;
 

@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Lab1.Models;
 using Lab1.Models.Tools.ROI;
+using Lab1.ViewModels;
 using Lab1.Views.Graphics;
 using Lab1.Views.Tools.ROI;
 using OpenTK.Graphics.OpenGL;
@@ -12,7 +15,6 @@ namespace Lab1.Views;
 public partial class DicomGLViewer : UserControl
 {
     private readonly DicomGLState glState;
-
     private RectangleROITool? roiTool;
 
     // TODO: Introduce ViewModel for DicomManager
@@ -33,7 +35,21 @@ public partial class DicomGLViewer : UserControl
         viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    private void OpenTkControl_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    public DicomViewModel ViewModel => viewModel;
+    public DicomViewModel ViewModelState { set => viewModel = value; }
+
+    private void OpenTkControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (viewModel.DicomManager is DicomManager dicom && viewModel.SelectedROI is RectangleROI roi)
+        {
+            var control = (UIElement) sender;
+            var newCoords = CoordinatesTransform.WPF_ToGL(e.GetPosition(control), control.RenderSize);
+
+            viewModel.SetPointCommand.Execute(newCoords);
+        }
+    }
+
+    private void OpenTkControl_MouseWheel(object sender, MouseWheelEventArgs e)
     {
         viewModel.AdvanceDepthCommand.Execute(e.Delta);
     }
@@ -43,6 +59,7 @@ public partial class DicomGLViewer : UserControl
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
         glState.DrawVertices(viewModel.CurrentDepth);
+
         roiTool?.Draw();
     }
 
@@ -52,13 +69,17 @@ public partial class DicomGLViewer : UserControl
         {
             glState.LoadDicomTexture(dicom);
         }
-        else if (e.PropertyName == nameof(viewModel.SelectedROI) && viewModel.SelectedROI is RectangleROI roi && roiTool is not null)
+        else if (e.PropertyName == nameof(viewModel.SelectedROI) && viewModel.SelectedROI is RectangleROI roi)
         {
-            roiTool = new() { Tool = roi };
+            if (roiTool is null)
+            {
+                roiTool = new() { Tool = roi };
+            }
+            else roiTool.Tool = roi;
+
+            //roiTool is null ?
+            //roiTool ??= new() { Tool = roi };
             roiTool.UploadPoints();
         }
-        //else if (e.PropertyName == nameof(viewModel.CurrentDepth))
-        //{
-        //}
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using System.Windows.Media;
+using Lab1.Models;
 
 namespace Lab1.App;
 
@@ -11,6 +11,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
@@ -19,8 +20,7 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true)
         {
             string [] files = dialog.FileNames;
-            mainState.LoadDicomCommand.Execute(files);
-            //viewer.UploadDicom(Models.DicomManager.FromFiles(files));
+            viewer.ViewModel.SetDicomCommand.Execute(DicomManager.FromFiles(files));
         }
     }
 }

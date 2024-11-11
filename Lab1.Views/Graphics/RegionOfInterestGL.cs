@@ -16,6 +16,7 @@ public class RegionOfInterestGL : IDisposable
 {
     private readonly int vertShader, fragShader, program;
     private uint contourBuffer, refPointsBuffer;
+    private uint contourVAO, refPointsVAO;
     private bool disposedValue;
 
     private PointF [] referencePoints = Array.Empty<PointF>();
@@ -94,9 +95,11 @@ public class RegionOfInterestGL : IDisposable
         var colorLoc = GL.GetUniformLocation(program, "u_color");
 
         GL.Uniform4(colorLoc, ReferencePointColor.R, ReferencePointColor.G, ReferencePointColor.B, ReferencePointColor.A);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, refPointsBuffer);
+        ThrowIfGLError();
+        GL.BindVertexArray(refPointsVAO);
 
         GL.DrawArrays(PrimitiveType.TriangleStrip, 0, referencePoints.Length);
+        ThrowIfGLError();
     }
 
     public void DrawRegionContour(PrimitiveType mode)
@@ -106,9 +109,10 @@ public class RegionOfInterestGL : IDisposable
         var colorLoc = GL.GetUniformLocation(program, "u_color");
 
         GL.Uniform4(colorLoc, LineColor.R, LineColor.G, LineColor.B, LineColor.A);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, contourBuffer);
-
+        ThrowIfGLError();
+        GL.BindVertexArray(contourVAO);
         GL.DrawArrays(mode, 0, regionContour.Length);
+        ThrowIfGLError();
     }
 
     protected virtual void Dispose(bool disposing)
@@ -136,17 +140,35 @@ public class RegionOfInterestGL : IDisposable
     private void CreateBuffers()
     {
         var buffers = new uint [2];
+        var vaos = new uint [2];
+
+        GL.BindVertexArray(0);
+
         GL.GenBuffers(2, buffers);
+        GL.GenVertexArrays(2, vaos);
 
+        ThrowIfGLError();
+        GL.BindVertexArray(vaos [0]);
         GL.BindBuffer(BufferTarget.ArrayBuffer, buffers [0]);
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
+        ThrowIfGLError();
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+        ThrowIfGLError();
 
+        GL.BindVertexArray(vaos [1]);
         GL.BindBuffer(BufferTarget.ArrayBuffer, buffers [1]);
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+        ThrowIfGLError();
 
         contourBuffer = buffers [0];
         refPointsBuffer = buffers [1];
+        contourVAO = vaos [0];
+        refPointsVAO = vaos [1];
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindVertexArray(0);
+
+        ThrowIfGLError();
     }
 }

@@ -16,5 +16,5 @@
         x:Name="openTkControl"
         Width="auto"
         Height="auto"
-        Render="OpenTkControl_Render" MouseWheel="OpenTkControl_MouseWheel" />
+        Render="OpenTkControl_Render" MouseWheel="OpenTkControl_MouseWheel" MouseLeftButtonUp="OpenTkControl_MouseLeftButtonUp" />
 </UserControl>
