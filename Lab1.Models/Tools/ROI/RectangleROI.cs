@@ -2,9 +2,7 @@
 
 namespace Lab1.Models.Tools.ROI;
 
-public class RectangleROI
+public class RectangleROI : RegionOfInterest
 {
-    public Rectangle? Region { get; set; }
-    public bool IsSelected { get; set; } = false;
-    public bool IsActive { get; set; } = false;
+    public Rectangle Region { get; set; }
 }
