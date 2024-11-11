@@ -7,15 +7,12 @@
     xmlns:local="clr-namespace:Lab1.App"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
-    xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
     xmlns:views="clr-namespace:Lab1.Views;assembly=Lab1.Views"
     Title="MainWindow"
     Width="800"
     Height="568"
     mc:Ignorable="d">
-    <Window.DataContext>
-        <viewmodels:App x:Name="mainState" />
-    </Window.DataContext>
+
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
         <StackPanel x:Name="menu" Orientation="Horizontal">
             <Button

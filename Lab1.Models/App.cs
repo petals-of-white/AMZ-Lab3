@@ -2,19 +2,33 @@
 
 namespace Lab1.Models;
 
-public class App
+public class CurrentImage(DicomManager dicom)
 {
-    float currentDepth = 0;
+    private float currentDepth = 0f;
+
     public float CurrentDepth
     {
         get => currentDepth;
-        set => currentDepth = value switch
+        private set => currentDepth = value switch
         {
-            (< 0) => 0,
-            (> 1) => 1,
-            var otherwise => otherwise
+            (< 0f) => 0f,
+            (> 1f) => 1f,
+            var other => other
         };
     }
-    public RectangleROI RegionOfInterest { get; set; } = new();
-    public DicomManager? Dicom { get; set; } = null;
+
+    public void AdvanceInDepth(int move)
+    {
+        CurrentDepth += (move / Dicom.Depth);
+    }
+
+    public DicomManager Dicom { get; } = dicom;
+}
+
+public class App
+{
+    public CurrentImage? DisplayImage { get; set; }
+
+    public RectangleROI? RegionOfInterest { get; set; } = new();
+    
 }

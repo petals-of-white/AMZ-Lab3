@@ -1,6 +1,6 @@
 ﻿namespace Lab1.Views.Colors;
 
-public struct RGBA<Component> where Component : struct
+public struct RGBA<Component> where Component : new()
 {
     public Component R { get; set; }
     public Component G { get; set; }

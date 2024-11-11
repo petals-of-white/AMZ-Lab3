@@ -1,6 +1,9 @@
-﻿using System.Windows.Controls;
+﻿using System.ComponentModel;
+using System.Windows.Controls;
 using Lab1.Models;
+using Lab1.Models.Tools.ROI;
 using Lab1.Views.Graphics;
+using Lab1.Views.Tools.ROI;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 
@@ -8,7 +11,9 @@ namespace Lab1.Views;
 
 public partial class DicomGLViewer : UserControl
 {
-    private DicomGLState? glState;
+    private readonly DicomGLState glState;
+
+    private RectangleROITool? roiTool;
 
     // TODO: Introduce ViewModel for DicomManager
     public DicomGLViewer()
@@ -21,20 +26,39 @@ public partial class DicomGLViewer : UserControl
         };
 
         openTkControl.Start(settings);
-        
+        GL.ClearColor(0, 0, 0, 1);
 
         glState = new DicomGLState();
+
+        viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    public float CurrentDepth { get; set; } = 0.0f;
-    //public OpenGL? GL { get; set; }
-
-    public void UploadDicom(DicomManager dicomMng) => glState?.LoadDicomTexture(dicomMng);
-
-    private void openTkControl_Render(TimeSpan obj)
+    private void OpenTkControl_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
     {
-        GL.ClearColor(0, 0, 0, 1);
+        viewModel.AdvanceDepthCommand.Execute(e.Delta);
+    }
+
+    private void OpenTkControl_Render(TimeSpan obj)
+    {
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        glState?.DrawVertices(CurrentDepth);
+
+        glState.DrawVertices(viewModel.CurrentDepth);
+        roiTool?.Draw();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(viewModel.DicomManager) && viewModel.DicomManager is DicomManager dicom)
+        {
+            glState.LoadDicomTexture(dicom);
+        }
+        else if (e.PropertyName == nameof(viewModel.SelectedROI) && viewModel.SelectedROI is RectangleROI roi && roiTool is not null)
+        {
+            roiTool = new() { Tool = roi };
+            roiTool.UploadPoints();
+        }
+        //else if (e.PropertyName == nameof(viewModel.CurrentDepth))
+        //{
+        //}
     }
 }

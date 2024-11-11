@@ -1,82 +1,152 @@
-﻿using System.IO;
-using FellowOakDicom.Imaging.Mathematics;
+﻿using System.Drawing;
+
+//using System.Windows;
+//using System.Windows.Shapes;
 using Lab1.Views.Colors;
-using SharpGL;
-using SharpGL.Shaders;
-using SharpGL.VertexBuffers;
+using OpenTK.Graphics.OpenGL;
+
+//using SharpGL;
+//using SharpGL.Shaders;
+//using SharpGL.VertexBuffers;
+using static Lab1.Views.Graphics.OpenGLHelpers;
 
 namespace Lab1.Views.Graphics;
 
-public class RegionOfInterestGL
+public class RegionOfInterestGL : IDisposable
 {
-    private readonly VertexBuffer contourBuffer = new();
-    private readonly OpenGL gl;
-    private readonly VertexBuffer refPointsBuffer = new();
-    private readonly ShaderProgram shaderProgram = new();
-    private Point2D [] referencePoints = Array.Empty<Point2D>();
-    private Point2D [] regionContour = Array.Empty<Point2D>();
+    private readonly int vertShader, fragShader, program;
+    private uint contourBuffer, refPointsBuffer;
+    private bool disposedValue;
 
-    public RegionOfInterestGL(OpenGL opengl)
+    private PointF [] referencePoints = Array.Empty<PointF>();
+
+    private PointF [] regionContour = Array.Empty<PointF>();
+
+    public RegionOfInterestGL()
     {
-        gl = opengl;
-        contourBuffer.Create(gl);
-        refPointsBuffer.Create(gl);
-        CreateProgram();
+        CreateBuffers();
+        (vertShader, fragShader, program) = CreateProgram(VertShaderLoc, FragShaderLoc);
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    ~RegionOfInterestGL()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
     }
 
     public static string FragShaderLoc { get; } = "Shaders/ROI.frag";
+    public static SizeF SquareSize { get; } = new SizeF(0.05f, 0.05f);
     public static string VertShaderLoc { get; } = "Shaders/ROI.vert";
     public RGBA<float> LineColor { get; set; }
     public RGBA<float> ReferencePointColor { get; set; }
 
-    public Point2D [] ReferencePoints
+    public PointF [] ReferencePoints
     {
         get => referencePoints;
         set
         {
-            var floats = value.
-                SelectMany((p2d) => new float [] { (float) p2d.X, (float) p2d.Y })
-                .ToArray();
+            var points = value.
+                SelectMany(center =>
+                {
+                    var square = SquareFromPoint(center, SquareSize);
 
-            refPointsBuffer.SetData(gl, 0, floats, false, 2);
+                    return new PointF [] {
+                        square.Location, new(square.Right, square.Top),
+                        new(square.Bottom, square.Left), new(square.Bottom, square.Right)
+                    };
+                }).ToArray();
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, refPointsBuffer);
+
+            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * 2 * points.Length, points, BufferUsageHint.DynamicDraw);
 
             referencePoints = value;
         }
     }
 
-    public Point2D [] RegionContour
+    public PointF [] RegionContour
     {
         get => regionContour;
         set
         {
-            var floats = value.
-                SelectMany((p2d) => new float [] { (float) p2d.X, (float) p2d.Y })
-                .ToArray();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, contourBuffer);
 
-            contourBuffer.SetData(gl, 0, floats, false, 2);
+            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * 2 * value.Length, value, BufferUsageHint.DynamicDraw);
 
             regionContour = value;
         }
     }
 
+    public static RectangleF SquareFromPoint(PointF point, SizeF size) => new RectangleF(point - (size / 2), size);
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
     public void DrawReferencePoints()
     {
-        throw new NotImplementedException();
+        GL.UseProgram(program);
+
+        var colorLoc = GL.GetUniformLocation(program, "u_color");
+
+        GL.Uniform4(colorLoc, ReferencePointColor.R, ReferencePointColor.G, ReferencePointColor.B, ReferencePointColor.A);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, refPointsBuffer);
+
+        GL.DrawArrays(PrimitiveType.TriangleStrip, 0, referencePoints.Length);
     }
 
-    public void DrawRegionContour(uint mode)
+    public void DrawRegionContour(PrimitiveType mode)
     {
-        shaderProgram.Bind(gl);
-        var colorLoc = shaderProgram.GetUniformLocation(gl, "u_color");
-        gl.Uniform4(colorLoc, LineColor.R, LineColor.G, LineColor.B, LineColor.A);
+        GL.UseProgram(program);
 
-        contourBuffer.Bind(gl);
-        gl.DrawArrays(mode, 0, regionContour.Length);
+        var colorLoc = GL.GetUniformLocation(program, "u_color");
+
+        GL.Uniform4(colorLoc, LineColor.R, LineColor.G, LineColor.B, LineColor.A);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, contourBuffer);
+
+        GL.DrawArrays(mode, 0, regionContour.Length);
     }
 
-    private void CreateProgram()
+    protected virtual void Dispose(bool disposing)
     {
-        shaderProgram.Create(gl, File.ReadAllText(VertShaderLoc), File.ReadAllText(FragShaderLoc), []);
-        shaderProgram.AssertValid(gl);
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+            }
+            GL.UseProgram(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+            GL.DeleteShader(vertShader);
+            GL.DeleteShader(fragShader);
+            GL.DeleteProgram(program);
+
+            GL.DeleteBuffer(contourBuffer);
+            GL.DeleteBuffer(refPointsBuffer);
+
+            disposedValue = true;
+        }
+    }
+
+    private void CreateBuffers()
+    {
+        var buffers = new uint [2];
+        GL.GenBuffers(2, buffers);
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers [0]);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers [1]);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+
+        contourBuffer = buffers [0];
+        refPointsBuffer = buffers [1];
     }
 }

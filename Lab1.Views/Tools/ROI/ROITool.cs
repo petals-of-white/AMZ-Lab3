@@ -1,47 +1,38 @@
-﻿using FellowOakDicom.Imaging.Mathematics;
+﻿using System.Drawing;
+using Lab1.Models.Tools;
 using Lab1.Views.Colors;
 using Lab1.Views.Graphics;
-using SharpGL;
+using OpenTK.Graphics.OpenGL;
 
 namespace Lab1.Views.Tools.ROI;
 
-public abstract class ROITool : IOverlayTool
+public abstract class ROITool
 {
     private readonly RegionOfInterestGL roiGL;
 
-    public ROITool(OpenGL gl)
+    public ROITool()
     {
-        //ViewImage = img;;
-        roiGL = new(gl)
+        roiGL = new()
         {
             LineColor = new RGBA<float> { R = 1, G = 1, B = 0, A = 1 },
             ReferencePointColor = new RGBA<float> { R = 1, G = 0, B = 0, A = 1 },
         };
     }
 
-    public bool IsROIActive { get; protected set; }
+    public abstract bool IsDisplayed { get; }
 
-    public bool IsShown { get; protected set; }
-
-    public abstract uint PrimitiveType { get; }
+    public abstract PrimitiveType PrimitiveType { get; }
 
     public virtual string ToolName => "Зона дослідження";
 
-    //public DicomGLViewer ViewImage { get; }
-    protected abstract Point2D [] Contour { get; }
+    protected abstract PointF [] Contour { get; }
 
-    protected abstract Point2D [] ReferencePoints { get; }
+    protected abstract PointF [] ReferencePoints { get; }
 
-    public void Hide()
-    {
-        IsShown = false;
-    }
-
-    public void Show()
+    public void Draw()
     {
         DisplayRegion();
         //DisplayInfo();
-        IsShown = true;
     }
 
     public void UploadPoints()
@@ -52,5 +43,9 @@ public abstract class ROITool : IOverlayTool
 
     protected void DisplayInfo() => throw new NotImplementedException();
 
-    protected void DisplayRegion() => roiGL.DrawRegionContour(PrimitiveType);
+    protected void DisplayRegion()
+    {
+        roiGL.DrawRegionContour(PrimitiveType);
+        roiGL.DrawReferencePoints();
+    }
 }

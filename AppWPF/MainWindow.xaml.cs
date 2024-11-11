@@ -19,7 +19,8 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true)
         {
             string [] files = dialog.FileNames;
-            viewer.UploadDicom(Models.DicomManager.FromFiles(files));
+            mainState.LoadDicomCommand.Execute(files);
+            //viewer.UploadDicom(Models.DicomManager.FromFiles(files));
         }
     }
 }

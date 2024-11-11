@@ -1,19 +1,23 @@
 ﻿using System.Drawing;
-using FellowOakDicom.Imaging.Mathematics;
 using Lab1.Models.Tools.ROI;
-using SharpGL;
+using OpenTK.Graphics.OpenGL;
 
 namespace Lab1.Views.Tools.ROI;
 
-public class RectangleROITool(OpenGL gl) : ROITool(gl)
+public class RectangleROITool : ROITool
 {
-    public override uint PrimitiveType => OpenGL.GL_LINE_STRIP;
-    public RectangleROI Tool { get; } = new();
+    public override bool IsDisplayed => Tool.IsDisplayed;
+    public override PrimitiveType PrimitiveType => PrimitiveType.LineStrip;
+    public RectangleROI Tool { get; set; } = new();
 
-    protected override Point2D [] Contour =>
-        Tool.Region is Models.Shapes.Rectangle { P1: PointF { X: var x1, Y: var y1 }, P2: PointF { X: var x2, Y: var y2 } }
+    protected override PointF [] Contour =>
+        Tool.Region is Models.Shapes.Rectangle
+        {
+            P1: PointF { X: var x1, Y: var y1 },
+            P2: PointF { X: var x2, Y: var y2 }
+        }
         ? [new(x1, y1), new(x1, y2), new(x2, y2), new(x2, y1)]
-        : Array.Empty<Point2D>();
+        : Array.Empty<PointF>();
 
-    protected override Point2D [] ReferencePoints => Contour;
+    protected override PointF [] ReferencePoints => Contour;
 }

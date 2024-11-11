@@ -134,8 +134,6 @@ public class DicomGLState : IDisposable
         GL.BindTexture(TextureTarget.Texture3D, texture3D);
     }
 
-
-    
     private void CreateProgram()
     {
         vertShader = MakeShader(ShaderType.VertexShader, File.ReadAllText(VertShaderLoc));
@@ -160,7 +158,6 @@ public class DicomGLState : IDisposable
 
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture3D, texture3D);
-        
 
         ThrowIfGLError();
 
@@ -192,8 +189,6 @@ public class DicomGLState : IDisposable
         //    case "": break;
         //    case (string nonempty): throw new Exception(nonempty);
         //}
-
-        
     }
 
     private void CreateVertices()

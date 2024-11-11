@@ -1,9 +1,24 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System.IO;
+using OpenTK.Graphics.OpenGL;
 
 namespace Lab1.Views.Graphics;
 
 public static class OpenGLHelpers
 {
+    public static (int vertShader, int fragShader, int program) CreateProgram(string vertPath, string fragPath)
+    {
+        var vertShader = MakeShader(ShaderType.VertexShader, File.ReadAllText(vertPath));
+        var fragShader = MakeShader(ShaderType.FragmentShader, File.ReadAllText(fragPath));
+
+        var program = GL.CreateProgram();
+        GL.AttachShader(program, vertShader);
+        GL.AttachShader(program, fragShader);
+        GL.LinkProgram(program);
+        GL.ValidateProgram(program);
+
+        return (vertShader, fragShader, program);
+    }
+
     public static unsafe float [] GetBufferSubData(int elementsNumber)
     {
         var arr = new float [elementsNumber];
@@ -11,7 +26,6 @@ public static class OpenGLHelpers
         {
             GL.GetBufferSubData(BufferTarget.ArrayBuffer, 0, sizeof(float) * elementsNumber, (nint) zuz);
         }
-
         return arr;
     }
 

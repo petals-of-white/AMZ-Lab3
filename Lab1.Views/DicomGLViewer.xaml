@@ -5,12 +5,16 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:openTK="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+    xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
     d:DesignHeight="512"
     d:DesignWidth="512"
     mc:Ignorable="d">
+    <UserControl.DataContext>
+        <viewmodels:DicomViewModel x:Name="viewModel" />
+    </UserControl.DataContext>
     <openTK:GLWpfControl
         x:Name="openTkControl"
         Width="auto"
         Height="auto"
-        Render="openTkControl_Render" />
+        Render="OpenTkControl_Render" MouseWheel="OpenTkControl_MouseWheel" />
 </UserControl>
