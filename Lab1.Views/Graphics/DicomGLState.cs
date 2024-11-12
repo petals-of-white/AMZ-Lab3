@@ -102,18 +102,47 @@ public class DicomGLState : IDisposable
     {
         var converter = new DicomToGLConverter(dicomMng);
 
-        GL.BindTexture(TextureTarget.Texture3D, texture3D);
-        fixed (byte* ptr = converter.TextureData)
-        {
-            var npointer = (nint) ptr;
-            GL.TexImage3D(TextureTarget.Texture3D, 0, (PixelInternalFormat) converter.InternalFormat, converter.Width, converter.Height, converter.Depth,
-            0, (PixelFormat) converter.Format, (PixelType) converter.Type, npointer);
-        }
+        ThrowIfGLError();
 
+        GL.BindTexture(TextureTarget.Texture3D, texture3D);
+
+        ThrowIfGLError();
+
+        byte [] byteArray = converter.TextureData;
+
+        GL.TexImage3D(TextureTarget.Texture3D, 0, converter.InternalFormat,
+            converter.Width, converter.Height, converter.Depth,
+            0, converter.Format, converter.Type, byteArray);
+
+        ThrowIfGLError();
         GL.BindTexture(TextureTarget.Texture3D, 0);
 
         ThrowIfGLError();
 
+        GL.UseProgram(program);
+
+        // Upload window-level uniforms
+        int windowLoc = GL.GetUniformLocation(program, "winLevel.ww");
+        int levelLoc = GL.GetUniformLocation(program, "winLevel.wl");
+
+        GL.Uniform1(windowLoc, 1000f);
+        GL.Uniform1(levelLoc, 500f);
+
+        ThrowIfGLError();
+
+        // upload normalization uniforms
+        int minPeakLoc = GL.GetUniformLocation(program, "minPeak");
+        int maxPeakLoc = GL.GetUniformLocation(program, "maxPeak");
+        short [] texArray = new short [byteArray.Length / 2];
+        System.Buffer.BlockCopy(byteArray, 0, texArray, 0, byteArray.Length);
+        var maxVal = texArray.Max();
+        var minVal = texArray.Min();
+        GL.Uniform1(minPeakLoc, (float) minVal);
+        GL.Uniform1(maxPeakLoc, (float) maxVal);
+
+        ThrowIfGLError();
+
+        GL.UseProgram(0);
         IsTextureLoaded = true;
     }
 

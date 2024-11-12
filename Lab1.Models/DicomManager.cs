@@ -28,6 +28,7 @@ public class DicomManager
                 var pxData = DicomPixelData.Create(ds);
 
                 pixelData = pxData;
+                rawFrames.Add(pixelData.GetFrame(0));
 
                 dicomFiles.Skip(1).
                     SelectMany(file => EnumerateFrames(DicomPixelData.Create(file.Dataset))).
