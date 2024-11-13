@@ -14,7 +14,7 @@
     mc:Ignorable="d">
 
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
-        <StackPanel x:Name="menu" Orientation="Horizontal">
+        <StackPanel x:Name="menuPanal" Orientation="Horizontal">
             <Button
                 x:Name="selectDicomBtn"
                 HorizontalAlignment="Left"
@@ -29,9 +29,19 @@
                 Content="Зона дослідження" Command="{Binding ElementName=viewer, Path=ViewModel.DisplayROICommand}"/>
         </StackPanel>
 
-        <views:DicomGLViewer
-                x:Name="viewer"
-                Width="512"
-                Height="512" />
+        <StackPanel Orientation="Horizontal">
+            <Grid>
+                <views:DicomGLViewer x:Name="viewer"/>
+            </Grid>
+
+            <DockPanel Width="200" Height="200">
+                <!--control elements-->
+            </DockPanel>
+            
+            
+            
+        </StackPanel>
+        
+            
     </StackPanel>
 </Window>
