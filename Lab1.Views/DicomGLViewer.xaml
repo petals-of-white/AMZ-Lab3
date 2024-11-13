@@ -1,20 +1,35 @@
 ﻿<UserControl
     x:Class="Lab1.Views.DicomGLViewer"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:openTK="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
     xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
+    xmlns:converters="clr-namespace:Lab1.Views.Converters"
+    xmlns:openTK="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
     d:DesignHeight="512"
     d:DesignWidth="512"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:VisibilityConverter x:Key="visibilityConverter" />
+        <converters:RectangleToWPFCoordsConverter x:Key="rectangleConverter" />
+    </UserControl.Resources>
     <UserControl.DataContext>
         <viewmodels:DicomViewModel x:Name="viewModel" />
     </UserControl.DataContext>
-    <openTK:GLWpfControl
-        x:Name="openTkControl"
-        Width="auto"
-        Height="auto"
-        Render="OpenTkControl_Render" MouseWheel="OpenTkControl_MouseWheel" MouseLeftButtonUp="OpenTkControl_MouseLeftButtonUp" />
+    <Canvas x:Name="canvas" MouseLeftButtonDown="DisplayRegionClick">
+        <openTK:GLWpfControl
+            x:Name="openTkControl"
+            Width="{Binding Path=DicomManager.Width}"
+            Height="{Binding Path=DicomManager.Height}"
+            Render="OpenTkControl_Render"
+            MouseWheel="OpenTkControl_MouseWheel" />
+        <Rectangle
+            x:Name="roiRegion" Stroke="Yellow" StrokeThickness="2"
+            Visibility="{Binding SelectedROI.IsDisplayed, Converter={StaticResource visibilityConverter}}"
+            Height="{Binding SelectedROI.Region.Height}"
+            Width="{Binding SelectedROI.Region.Width}"
+            Canvas.Left="{Binding SelectedROI.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
+            Canvas.Top="{Binding SelectedROI.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}" />
+    </Canvas>
 </UserControl>
