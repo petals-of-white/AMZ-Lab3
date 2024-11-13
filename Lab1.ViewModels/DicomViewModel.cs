@@ -17,7 +17,7 @@ public class DicomViewModel : SimpleNotifier
     {
         SetDicomCommand = new RelayCommand<DicomManager>(SetDicom);
         SetPointCommand = new RelayCommand<PointF>(SetPoint);
-        DisplayROICommand = new RelayCommand(DisplayROI);
+        DisplayROICommand = new RelayCommand(ToggleROI);
         SelectRegionCommand = new RelayCommand<Models.Shapes.Rectangle>(SelectRegion);
         AdvanceDepthCommand = new RelayCommand<int>(AdvanceInDepth);
     }
@@ -63,12 +63,7 @@ public class DicomViewModel : SimpleNotifier
 
     private void AdvanceInDepth(int move)
     {
-        if (dicomManager is not null) CurrentDepth += ((float)move / dicomManager.Depth);
-    }
-
-    private void DisplayROI()
-    {
-        (SelectedROI ??= new RectangleROI() { IsActive = true, IsDisplayed = true }).IsDisplayed = true;
+        if (dicomManager is not null) CurrentDepth += ((float) move / dicomManager.Depth);
     }
 
     private void SelectRegion(Models.Shapes.Rectangle region)
@@ -90,5 +85,12 @@ public class DicomViewModel : SimpleNotifier
             NotifyPropertyChanged(nameof(SelectedROI));
             lastSetPoint = newPoint;
         }
+    }
+
+    private void ToggleROI()
+    {
+        var roi = (SelectedROI ??= new RectangleROI() { IsActive = true, IsDisplayed = true });
+        roi.IsDisplayed = !roi.IsDisplayed;
+        NotifyPropertyChanged(nameof(SelectedROI));
     }
 }
