@@ -1,17 +1,15 @@
 ﻿<Window
     x:Class="Lab1.App.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:Imaging="clr-namespace:FellowOakDicom.Imaging;assembly=fo-dicom.core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Lab1.App"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
     xmlns:views="clr-namespace:Lab1.Views;assembly=Lab1.Views"
     Title="MainWindow"
     Width="800"
     Height="568"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    DataContext="{Binding ElementName=viewer, Path=ViewModel}">
 
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
         <StackPanel x:Name="menuPanal" Orientation="Horizontal">
@@ -26,22 +24,40 @@
                 Width="108"
                 Margin="27,0,0,0"
                 Background="#FFCAEFB9"
-                Content="Зона дослідження" Command="{Binding ElementName=viewer, Path=ViewModel.DisplayROICommand}"/>
+                Content="Зона дослідження"
+                Command="{Binding DisplayROICommand}" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal">
-            <Grid>
-                <views:DicomGLViewer x:Name="viewer"/>
+            <Grid DockPanel.Dock="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="256" />
+                    <RowDefinition Height="256" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="256" />
+                    <ColumnDefinition Width="256" />
+                </Grid.ColumnDefinitions>
+
+                <views:DicomGLViewer x:Name="viewer" Grid.Column="0" Grid.Row="0" />
+                <Rectangle Grid.Row="0" Grid.Column="1"  Fill="Black" Width="auto" />
+                <Rectangle Grid.Row="1" Grid.Column="0" Fill="Black" Width="auto" />
             </Grid>
 
-            <DockPanel Width="200" Height="200">
-                <!--control elements-->
-            </DockPanel>
-            
-            
-            
+            <StackPanel Width="200"  DockPanel.Dock="Right" Orientation="Vertical">
+
+                <Label Target="{Binding ElementName=axialSlider}" Content="{Binding ElementName=axialSlider, Path=Value}" ContentStringFormat="Axial slice {0}" ></Label>
+                <Slider TickFrequency="1" TickPlacement="BottomRight"
+                        Minimum="1"
+                        Maximum="{Binding DicomManager.Depth}"
+                        x:Name="axialSlider" />
+                <Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
+
+                <Slider TickPlacement="BottomRight" x:Name="coronalSlider" Minimum="1" Maximum="{Binding DicomManager.Height}" TickFrequency="1" />
+
+                <Label Target="{Binding ElementName=saggitalSlider}" Content="{Binding ElementName=saggitalSlider, Path=Value}" ContentStringFormat="Saggital slice {0}" ></Label>
+                <Slider TickPlacement="BottomRight" x:Name="saggitalSlider" Minimum="1" Maximum="{Binding DicomManager.Width}" TickFrequency="1" />
+            </StackPanel>
         </StackPanel>
-        
-            
     </StackPanel>
 </Window>
