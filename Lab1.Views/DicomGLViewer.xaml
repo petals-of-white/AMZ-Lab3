@@ -13,7 +13,8 @@
     <UserControl.Resources>
         <converters:VisibilityConverter x:Key="visibilityConverter" />
         <converters:RectangleToWPFCoordsConverter x:Key="rectangleConverter" />
-        <converters:RoiToInfoLayoutCoordsConverter x:Key="overlayCoordsConverter"/>
+        <converters:RoiToInfoLayoutCoordsConverter x:Key="overlayCoordsConverter" />
+        <converters:RegionOfInterestToText x:Key="roiToTextConverter" />
     </UserControl.Resources>
     <UserControl.DataContext>
         <viewmodels:DicomViewModel x:Name="viewModel" />
@@ -43,14 +44,13 @@
                 d:Canvas.Top="50"
                 d:Canvas.Left="175"
                 Canvas.Left="{Binding SelectedROI.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
-                Canvas.Top="{Binding SelectedROI.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}"
-                >
+                Canvas.Top="{Binding SelectedROI.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}">
             <TextBlock
-                Height="100" Width="70"
+                Height="35" Width="100"
                 Foreground="White"
                 Background="#90FFFF00"
                 d:Text="ROI Info"
-                />
+                Text="{Binding ROIInfo, Converter={StaticResource roiToTextConverter}}" />
         </Border>
     </Canvas>
 </UserControl>

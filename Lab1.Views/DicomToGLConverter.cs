@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Lab1.Views;
 
-public class DicomToGLConverter(DicomManager dicom)
+public class DicomToGLConverter(IDicomData dicom)
 {
-    private readonly DicomManager dicomManager = dicom;
+    private readonly IDicomData dicomManager = dicom;
 
     public int Depth => dicomManager.Depth;
 
@@ -38,7 +38,6 @@ public class DicomToGLConverter(DicomManager dicom)
         _ => throw new NotImplementedException("Other photometric interpretation is not implemented yet.")
     };
 
-    public byte [] TextureData => dicomManager.RawFrames.SelectMany((fr) => fr.Data).ToArray();
 
     public PixelType Type => dicomManager.BitDepth switch
     {

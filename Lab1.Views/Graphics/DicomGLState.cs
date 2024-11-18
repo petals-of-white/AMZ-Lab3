@@ -1,7 +1,10 @@
 ﻿using System.IO;
+using System.Net.WebSockets;
+using System.Numerics;
 using Lab1.Models;
 using MathNet.Numerics.LinearAlgebra;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using static Lab1.Views.Graphics.OpenGLHelpers;
 
 namespace Lab1.Views.Graphics;
@@ -15,11 +18,15 @@ public class DicomGLState : IDisposable
         1f,  1f,      1f, 1f,
     };
 
+    private DicomToGLConverter? dicomGLData;
     private bool disposed;
+    private AnatomicPlane? sourcePlane;
     private uint texture3D;
     private uint vao;
     private uint vbo;
     private int vertShader, fragShader, program;
+
+    private CoordsPixelLength? volumePixSize;
 
     public DicomGLState()
     {
@@ -35,6 +42,16 @@ public class DicomGLState : IDisposable
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public bool IsTextureLoaded { get; private set; } = false;
+
+    //public static float CalculateDepth(AnatomicPlane sourcePlane, AnatomicPlane targetPlane, int width, int height, int depth)
+    //{
+    //}
+
+    public static OpenTK.Mathematics.Matrix4 ToOpenTKMatrix(Matrix4x4 matrix) => new(
+        matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+        matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+        matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+        matrix.M41, matrix.M42, matrix.M43, matrix.M44);
 
     public void Dispose()
     {
@@ -53,19 +70,38 @@ public class DicomGLState : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public void DrawVertices(float depth)
+    public void DrawVertices(AnatomicPlane targetPlane, int sliceNumber)
     {
         if (IsTextureLoaded)
         {
-            //BindAll();
+            float relativeDepth;
 
-            var transformMatrix = CreateMatrix.DenseOfArray(new float [,] {
-            { 1, 0, 0, 0 },
-            { 0, 1, 0, 0 },
-            { 0, 0, 1, depth },
-            { 0, 0, 0, 1 }
-        });
+            switch (targetPlane)
+            {
+                case (AnatomicPlane.Axial):
+
+                    relativeDepth = (float) sliceNumber / volumePixSize!.ZPixels;
+                    break;
+
+                case (AnatomicPlane.Saggital):
+                    relativeDepth = (float) sliceNumber / volumePixSize!.XPixels;
+                    break;
+
+                case (AnatomicPlane.Coronal):
+                    relativeDepth = (float) sliceNumber / volumePixSize!.YPixels;
+                    break;
+
+                default:
+                    throw new NotImplementedException("Dicom GL only supports Axial plane as default.");
+            }
+
+            Matrix4x4 addDepth = Matrix4x4.CreateTranslation(0, 0, relativeDepth);
+            Matrix4x4 changePlanes = AnatomicPlaneRelations.PlaneTransform((AnatomicPlane) sourcePlane!, targetPlane);
+
+            var transformMatrix = changePlanes * addDepth;
+            var opentkmatrix = ToOpenTKMatrix(transformMatrix);
             ThrowIfGLError();
+
             GL.BindVertexArray(vao);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -83,7 +119,7 @@ public class DicomGLState : IDisposable
 
             var transMatLoc = GL.GetUniformLocation(program, "u_transform_matrix");
 
-            GL.UniformMatrix4(transMatLoc, 1, false, transformMatrix.ToRowMajorArray());
+            GL.UniformMatrix4(transMatLoc, false, ref opentkmatrix);
 
             ThrowIfGLError();
 
@@ -98,17 +134,19 @@ public class DicomGLState : IDisposable
         }
     }
 
-    public unsafe void LoadDicomTexture(DicomManager dicomMng)
+    public void LoadDicomTexture(IDicomData dicomData)
     {
-        var converter = new DicomToGLConverter(dicomMng);
-
+        var converter = new DicomToGLConverter(dicomData);
+        dicomGLData = converter;
+        sourcePlane = dicomData.DefaultPlane;
+        volumePixSize = new CoordsPixelLength(dicomData);
         ThrowIfGLError();
 
         GL.BindTexture(TextureTarget.Texture3D, texture3D);
 
         ThrowIfGLError();
 
-        byte [] byteArray = converter.TextureData;
+        byte [] byteArray = dicomData.ToArray();
 
         GL.TexImage3D(TextureTarget.Texture3D, 0, converter.InternalFormat,
             converter.Width, converter.Height, converter.Depth,
@@ -191,11 +229,11 @@ public class DicomGLState : IDisposable
 
         ThrowIfGLError();
 
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Clamp);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Clamp);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int) TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int) TextureWrapMode.Clamp);
         ThrowIfGLError();
         GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
         ThrowIfGLError();
@@ -212,13 +250,6 @@ public class DicomGLState : IDisposable
         // unbind all
         GL.BindTexture(TextureTarget.Texture3D, 0);
         GL.UseProgram(0);
-
-        // info log. WHY?
-        //switch (shaderProgram.GetInfoLog(gl))
-        //{
-        //    case "": break;
-        //    case (string nonempty): throw new Exception(nonempty);
-        //}
     }
 
     private void CreateVertices()

@@ -8,4 +8,6 @@ public record struct Rectangle(PointF P1, PointF P2)
 {
     public readonly float Height => Math.Abs(P1.Y - P2.Y);
     public readonly float Width => Math.Abs(P1.X - P2.X);
+    public readonly float Area => Height * Width;
+    public readonly float Perimeter => Height * 2 + Width * 2;
 }

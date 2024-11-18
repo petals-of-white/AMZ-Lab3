@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Lab1.Models;
-using Lab1.Models.Tools.ROI;
 using Lab1.ViewModels;
 using Lab1.Views.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -25,7 +24,7 @@ public partial class DicomGLViewer : UserControl
             MajorVersion = 4,
             MinorVersion = 3
         };
-
+        
         openTkControl.Start(settings);
         GL.ClearColor(0, 0, 0, 1);
 
@@ -37,9 +36,11 @@ public partial class DicomGLViewer : UserControl
     public DicomViewModel ViewModel => viewModel;
     public DicomViewModel ViewModelState { set => viewModel = value; }
 
+    //private float OpenGLDepth => viewModel.DicomManager?.Depth is int depth ? (float) viewModel.CurrentDepth / depth : 0;
+
     private void DisplayRegionClick(object sender, MouseButtonEventArgs e)
     {
-        if (viewModel.DicomManager is DicomManager dicom && viewModel.SelectedROI is RectangleROI roi)
+        if (viewModel.DicomManager is DicomManager dicom && viewModel.SelectedROI is not null)
         {
             var control = (UIElement) sender;
             var coords = e.GetPosition(control);
@@ -49,14 +50,14 @@ public partial class DicomGLViewer : UserControl
 
     private void OpenTkControl_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        viewModel.AdvanceDepthCommand.Execute(int.Sign(e.Delta));
+        //viewModel.AdvanceDepthCommand.Execute(int.Sign(e.Delta));
     }
 
     private void OpenTkControl_Render(TimeSpan obj)
     {
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        glState.DrawVertices(viewModel.CurrentDepth);
+        glState.DrawVertices(viewModel.CurrentPlane, viewModel.CurrentSlice);
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)

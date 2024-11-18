@@ -47,16 +47,26 @@
             <StackPanel Width="200"  DockPanel.Dock="Right" Orientation="Vertical">
 
                 <Label Target="{Binding ElementName=axialSlider}" Content="{Binding ElementName=axialSlider, Path=Value}" ContentStringFormat="Axial slice {0}" ></Label>
-                <Slider TickFrequency="1" TickPlacement="BottomRight"
+                <Slider TickFrequency="1"
+                        TickPlacement="BottomRight"
                         Minimum="1"
                         Maximum="{Binding DicomManager.Depth}"
-                        x:Name="axialSlider" />
+                        x:Name="axialSlider"
+                        Value="{Binding CurrentSlice}" />
                 <Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
 
-                <Slider TickPlacement="BottomRight" x:Name="coronalSlider" Minimum="1" Maximum="{Binding DicomManager.Height}" TickFrequency="1" />
+                <Slider TickPlacement="BottomRight" 
+                        x:Name="coronalSlider"
+                        Minimum="1"
+                        Maximum="{Binding DicomManager.Height}"
+                        TickFrequency="1" />
 
                 <Label Target="{Binding ElementName=saggitalSlider}" Content="{Binding ElementName=saggitalSlider, Path=Value}" ContentStringFormat="Saggital slice {0}" ></Label>
-                <Slider TickPlacement="BottomRight" x:Name="saggitalSlider" Minimum="1" Maximum="{Binding DicomManager.Width}" TickFrequency="1" />
+                <Slider
+                    TickPlacement="BottomRight"
+                    x:Name="saggitalSlider" Minimum="1"
+                    Maximum="{Binding DicomManager.Width}"
+                    TickFrequency="1" />
             </StackPanel>
         </StackPanel>
     </StackPanel>
