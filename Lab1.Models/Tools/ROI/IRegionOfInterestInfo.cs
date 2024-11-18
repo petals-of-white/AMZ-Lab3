@@ -3,16 +3,9 @@
 /// <summary>
 /// Region of interest
 /// </summary>
-public interface IRegionOfInterestInfo<Pixel>
+public interface IRegionOfInterestInfo
 {
+    double Area { get; }
     int NumberOfPixels { get; }
-    double Square { get; }
-    double Perimeter { get; }
-    double GeometricMedian { get; }
-    Pixel AvgIntensity { get; }
-
-    Pixel StdDevIntensity { get; }
-
-    Pixel SumIntensity { get; }
 }
 
