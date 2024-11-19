@@ -40,5 +40,6 @@ void main() {
 	int texValue = texture(u_texture, TexCoord).r;
 	float newValue = normalizeHistogram(float(texValue), minPeak, maxPeak, 0.0, 1.0);
 	FragColor = vec4(newValue,newValue,newValue, 1);
+//	FragColor = texture(u_texture, vec3(0.3,0.3,0.3));
 }
 

@@ -4,12 +4,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
     xmlns:views="clr-namespace:Lab1.Views;assembly=Lab1.Views"
     Title="MainWindow"
     Width="800"
     Height="568"
-    mc:Ignorable="d"
-    DataContext="{Binding ElementName=viewer, Path=ViewModel}">
+    mc:Ignorable="d">
+    <Window.Resources>
+        <viewmodels:DicomViewModel x:Key="axialViewModel" CurrentPlane="Axial" />
+        <viewmodels:DicomViewModel x:Key="coronalViewMode" CurrentPlane="Coronal" />
+        <viewmodels:DicomViewModel x:Key="sagittalViewModel" CurrentPlane="Saggital" />
+    </Window.Resources>
 
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
         <StackPanel x:Name="menuPanal" Orientation="Horizontal">
@@ -18,14 +23,16 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Click="OpenDicom_Click"
-                Content="Вибрати файл..." />
+                Content="Вибрати файл..." 
+                />
             <Button
                 x:Name="roiBtn"
                 Width="108"
                 Margin="27,0,0,0"
                 Background="#FFCAEFB9"
                 Content="Зона дослідження"
-                Command="{Binding DisplayROICommand}" />
+                Click="RoiBtn_Click"
+                 />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal">
@@ -39,15 +46,23 @@
                     <ColumnDefinition Width="256" />
                 </Grid.ColumnDefinitions>
 
-                <views:DicomGLViewer x:Name="viewer" Grid.Column="0" Grid.Row="0" />
-                <Rectangle Grid.Row="0" Grid.Column="1"  Fill="Black" Width="auto" />
-                <Rectangle Grid.Row="1" Grid.Column="0" Fill="Black" Width="auto" />
+
+                <views:DicomGLViewer x:Name="axialViewer" Grid.Column="0" Grid.Row="0" ViewModel="{StaticResource axialViewModel}" />
+
+                <views:DicomGLViewer x:Name="coronalViewer" Grid.Row="0" Grid.Column="1" ViewModel="{StaticResource coronalViewMode}" />
+
+                <views:DicomGLViewer x:Name="sagittalViewer" Grid.Row="1" Grid.Column="0" ViewModel="{StaticResource sagittalViewModel}" />
+
+                <!--<opentk:GLWpfControl Grid.Row="1" Grid.Column="0" x:Name="control1" Render="control1_Render" />
+                <opentk:GLWpfControl Grid.Column="0" Grid.Row="0" x:Name="control2" Render="control2_Render" />
+                <opentk:GLWpfControl Grid.Row="0" Grid.Column="1" x:Name="control3" Render="control3_Render" />-->
             </Grid>
 
             <StackPanel Width="200"  DockPanel.Dock="Right" Orientation="Vertical">
 
                 <Label Target="{Binding ElementName=axialSlider}" Content="{Binding ElementName=axialSlider, Path=Value}" ContentStringFormat="Axial slice {0}" ></Label>
                 <Slider TickFrequency="1"
+                        DataContext="{Binding ElementName=axialViewer, Path=ViewModel}"
                         TickPlacement="BottomRight"
                         Minimum="1"
                         Maximum="{Binding DicomManager.Depth}"
@@ -55,17 +70,21 @@
                         Value="{Binding CurrentSlice}" />
                 <Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
 
-                <Slider TickPlacement="BottomRight" 
+                <Slider TickPlacement="BottomRight"
                         x:Name="coronalSlider"
                         Minimum="1"
+                        DataContext="{Binding ElementName=coronalViewer, Path=ViewModel}"
                         Maximum="{Binding DicomManager.Height}"
-                        TickFrequency="1" />
+                        TickFrequency="1"
+                        Value="{Binding CurrentSlice}" />
 
                 <Label Target="{Binding ElementName=saggitalSlider}" Content="{Binding ElementName=saggitalSlider, Path=Value}" ContentStringFormat="Saggital slice {0}" ></Label>
                 <Slider
                     TickPlacement="BottomRight"
                     x:Name="saggitalSlider" Minimum="1"
+                    DataContext="{Binding ElementName=sagittalViewer, Path=ViewModel}"
                     Maximum="{Binding DicomManager.Width}"
+                    Value="{Binding CurrentSlice}"
                     TickFrequency="1" />
             </StackPanel>
         </StackPanel>

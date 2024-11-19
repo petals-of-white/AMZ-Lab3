@@ -9,10 +9,9 @@ namespace Lab1.ViewModels;
 
 public class DicomViewModel : SimpleNotifier
 {
-    private uint currentDepth = 1;
     private AnatomicPlane currentPlane = AnatomicPlane.Axial;
     private int currentSlice;
-    private IDicomData? dicomManager;
+    private IDicomData? dicomData;
     private PointF lastSetPoint;
     private RectangleRegion? selectedROI;
 
@@ -23,25 +22,6 @@ public class DicomViewModel : SimpleNotifier
         DisplayROICommand = new RelayCommand(ToggleROI);
         SelectRegionCommand = new RelayCommand<Models.Shapes.Rectangle>(SelectRegion);
         //AdvanceDepthCommand = new RelayCommand<int>(AdvanceInDepth);
-    }
-
-    public uint CurrentDepth
-    {
-        get => currentDepth;
-        set
-        {
-            currentDepth = value switch
-            {
-                (< 1u) => 1u,
-                var depth => dicomManager?.Depth switch
-                {
-                    int dicomDepth when depth <= dicomDepth => depth,
-                    int dicomDepth when depth > dicomDepth => (uint) dicomDepth,
-                    _ => currentDepth
-                }
-            };
-            NotifyPropertyChanged(nameof(CurrentDepth));
-        }
     }
 
     public AnatomicPlane CurrentPlane
@@ -64,13 +44,29 @@ public class DicomViewModel : SimpleNotifier
     //public ICommand AdvanceDepthCommand { get; }
     public IDicomData? DicomManager
     {
-        get => dicomManager;
-        private set { dicomManager = value; NotifyPropertyChanged(nameof(DicomManager)); }
+        get => dicomData;
+        private set { dicomData = value; NotifyPropertyChanged(nameof(DicomManager)); }
     }
+
+    public int? DisplayHeight => (currentPlane, dicomData) switch
+    {
+        (AnatomicPlane.Axial, IDicomData { DefaultPlane: AnatomicPlane.Axial, Height: var height }) => height,
+        (AnatomicPlane.Coronal, IDicomData { DefaultPlane: AnatomicPlane.Axial, Width: var depth }) => depth,
+        (AnatomicPlane.Saggital, IDicomData { DefaultPlane: AnatomicPlane.Axial, Height: var height }) => height,
+        _ => null
+    };
 
     public ICommand DisplayROICommand { get; }
 
-    public IRegionOfInterestInfo? ROIInfo => (selectedROI, dicomManager) switch
+    public int? DisplayWidth => (currentPlane, dicomData) switch
+    {
+        (AnatomicPlane.Axial, IDicomData { DefaultPlane: AnatomicPlane.Axial, Width: var width }) => width,
+        (AnatomicPlane.Coronal, IDicomData { DefaultPlane: AnatomicPlane.Axial, Width: var width }) => width,
+        (AnatomicPlane.Saggital, IDicomData { DefaultPlane: AnatomicPlane.Axial, Depth: var depth }) => depth,
+        _ => null
+    };
+
+    public IRegionOfInterestInfo? ROIInfo => (selectedROI, dicomData) switch
     {
         (RectangleRegion { IsDisplayed: true, Region: var region }, IDicomData dicomData) => new DicomRectangleROI(region, dicomData),
         _ => null
@@ -100,6 +96,8 @@ public class DicomViewModel : SimpleNotifier
     {
         DicomManager = dicom;
         NotifyPropertyChanged(nameof(ROIInfo));
+        NotifyPropertyChanged(nameof(DisplayHeight));
+        NotifyPropertyChanged(nameof(DisplayWidth));
     }
 
     private void SetPoint(PointF newPoint)

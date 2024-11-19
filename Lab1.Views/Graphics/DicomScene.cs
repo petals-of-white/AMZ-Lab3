@@ -1,15 +1,17 @@
-﻿using System.IO;
-using System.Net.WebSockets;
+﻿using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Numerics;
+using FellowOakDicom.IO;
 using Lab1.Models;
-using MathNet.Numerics.LinearAlgebra;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Desktop;
 using static Lab1.Views.Graphics.OpenGLHelpers;
 
 namespace Lab1.Views.Graphics;
 
-public class DicomGLState : IDisposable
+public class DicomScene : IDisposable
 {
     private static readonly float [] coords = {
         -1f, -1f,     0f, 0f,
@@ -25,10 +27,10 @@ public class DicomGLState : IDisposable
     private uint vao;
     private uint vbo;
     private int vertShader, fragShader, program;
-
     private CoordsPixelLength? volumePixSize;
+    private TextureWrapMode wrapMode = TextureWrapMode.MirroredRepeat;
 
-    public DicomGLState()
+    public DicomScene()
     {
         while (GL.GetError() is not ErrorCode.NoError) ;
 
@@ -47,7 +49,7 @@ public class DicomGLState : IDisposable
     //{
     //}
 
-    public static OpenTK.Mathematics.Matrix4 ToOpenTKMatrix(Matrix4x4 matrix) => new(
+    public static Matrix4 ToOpenTKMatrix(Matrix4x4 matrix) => new(
         matrix.M11, matrix.M12, matrix.M13, matrix.M14,
         matrix.M21, matrix.M22, matrix.M23, matrix.M24,
         matrix.M31, matrix.M32, matrix.M33, matrix.M34,
@@ -92,14 +94,20 @@ public class DicomGLState : IDisposable
                     break;
 
                 default:
-                    throw new NotImplementedException("Dicom GL only supports Axial plane as default.");
+                    throw new NotImplementedException("Dicom HUH");
             }
 
-            Matrix4x4 addDepth = Matrix4x4.CreateTranslation(0, 0, relativeDepth);
+            //Matrix4x4 addDepth = Matrix4x4.CreateTranslation(0, 0, -relativeDepth);
+            Matrix4x4 addDepth = AnatomicPlaneRelations.AddDepth((AnatomicPlane) sourcePlane!, targetPlane, relativeDepth);
+
             Matrix4x4 changePlanes = AnatomicPlaneRelations.PlaneTransform((AnatomicPlane) sourcePlane!, targetPlane);
 
-            var transformMatrix = changePlanes * addDepth;
+            //var transformMatrix = Matrix4x4.CreateTranslation(relativeDepth, 0, 0) * changePlanes;
+            var transformMatrix = Matrix4x4.CreateTranslation(0,0, relativeDepth) * changePlanes; 
+            //var transformMatrix = changePlanes * Matrix4x4.CreateTranslation(0,0,relativeDepth);
+
             var opentkmatrix = ToOpenTKMatrix(transformMatrix);
+
             ThrowIfGLError();
 
             GL.BindVertexArray(vao);
@@ -111,9 +119,9 @@ public class DicomGLState : IDisposable
 
             ThrowIfGLError();
 
-            GL.ActiveTexture(TextureUnit.Texture0);
-
             GL.BindTexture(TextureTarget.Texture3D, texture3D);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
 
             ThrowIfGLError();
 
@@ -123,8 +131,34 @@ public class DicomGLState : IDisposable
 
             ThrowIfGLError();
 
-            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+            short [] texture = new short [dicomGLData.Width * dicomGLData.Height * dicomGLData.Depth];
 
+            int internalFormat;
+            int texWidth, texHeight, texDepth;
+
+            GL.GetTexLevelParameter(TextureTarget.Texture3D, 0, GetTextureParameter.TextureInternalFormat, out internalFormat);
+            GL.GetTexLevelParameter(TextureTarget.Texture3D, 0, GetTextureParameter.TextureWidth, out texWidth);
+            GL.GetTexLevelParameter(TextureTarget.Texture3D, 0, GetTextureParameter.TextureHeight, out texHeight);
+            GL.GetTexLevelParameter(TextureTarget.Texture3D, 0, GetTextureParameter.TextureDepth, out texDepth);
+
+            var sos = (PixelInternalFormat) internalFormat;
+
+            if ((PixelInternalFormat) internalFormat != dicomGLData!.InternalFormat
+                || texWidth != dicomGLData!.Width
+                || texHeight != dicomGLData!.Height
+                || texDepth != dicomGLData!.Depth)
+            {
+                var message = $"Mismatch! Expected: Width{dicomGLData.Width}, Height {dicomGLData.Height}, Depth{dicomGLData.Depth}," +
+                    $"Internal format {dicomGLData.InternalFormat}. Got: width {texWidth}, height {texHeight}, depth {texDepth}, internal format {(PixelInternalFormat) internalFormat}";
+                Debug.WriteLine(message);
+                //throw new Exception(message);
+            }
+
+            ThrowIfGLError();
+            GL.GetTexImage(TextureTarget.Texture3D, 0, PixelFormat.RedInteger, PixelType.Short, texture);
+            ThrowIfGLError();
+            int numberOfVertices = 4;
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, numberOfVertices);
             // unbind
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -152,8 +186,13 @@ public class DicomGLState : IDisposable
             converter.Width, converter.Height, converter.Depth,
             0, converter.Format, converter.Type, byteArray);
 
+        byte [] checkArray = new byte [byteArray.Length];
         ThrowIfGLError();
-        GL.BindTexture(TextureTarget.Texture3D, 0);
+
+        GL.GetTexImage(TextureTarget.Texture3D, 0, converter.Format, converter.Type, checkArray);
+
+        if (!byteArray.SequenceEqual(checkArray)) throw new Exception("Tex format mismatch!!");
+        //GL.BindTexture(TextureTarget.Texture3D, 0);
 
         ThrowIfGLError();
 
@@ -229,15 +268,15 @@ public class DicomGLState : IDisposable
 
         ThrowIfGLError();
 
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Clamp);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int) wrapMode);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Clamp);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int) wrapMode);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int) TextureWrapMode.Clamp);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int) wrapMode);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);
         ThrowIfGLError();
-        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int) TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int) TextureMinFilter.Nearest);
 
         ThrowIfGLError();
 

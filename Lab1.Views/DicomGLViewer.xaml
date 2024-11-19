@@ -7,6 +7,7 @@
     xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
     xmlns:converters="clr-namespace:Lab1.Views.Converters"
     xmlns:openTK="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+    d:DataContext="{d:DesignInstance Type=viewmodels:DicomViewModel}"
     d:DesignHeight="256" d:Background="Black"
     d:DesignWidth="256"
     mc:Ignorable="d">
@@ -16,16 +17,12 @@
         <converters:RoiToInfoLayoutCoordsConverter x:Key="overlayCoordsConverter" />
         <converters:RegionOfInterestToText x:Key="roiToTextConverter" />
     </UserControl.Resources>
-    <UserControl.DataContext>
-        <viewmodels:DicomViewModel x:Name="viewModel" />
-    </UserControl.DataContext>
     <Canvas x:Name="canvas" MouseLeftButtonDown="DisplayRegionClick">
         <openTK:GLWpfControl
             x:Name="openTkControl"
-            Width="{Binding Path=DicomManager.Width}"
-            Height="{Binding Path=DicomManager.Height}"
-            Render="OpenTkControl_Render"
-            MouseWheel="OpenTkControl_MouseWheel" />
+            Width="{Binding DisplayWidth}"
+            Height="{Binding DisplayHeight}"
+            Render="OpenTkControl_Render" />
         <Rectangle
             x:Name="roiRegion" Stroke="Yellow" StrokeThickness="2"
             d:Visibility="Visible"
