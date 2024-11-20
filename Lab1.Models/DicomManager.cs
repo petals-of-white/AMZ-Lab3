@@ -32,7 +32,6 @@ public class DicomManager : IDicomData
                 var pxData = DicomPixelData.Create(ds);
 
                 pixelData = pxData;
-                //rawFrames.Add(pixelData.GetFrame(0));
                 bytes = new List<byte>(pxData.GetFrame(0).Data);
 
                 Depth = 1;
@@ -50,6 +49,7 @@ public class DicomManager : IDicomData
 
     public BitDepth BitDepth => pixelData.BitDepth;
     public int Count => Width * Height * Depth;
+    public AnatomicPlane DefaultPlane => AnatomicPlane.Axial;
     public int Depth { get; private set; }
     public ushort Height => pixelData.Height;
     public PhotometricInterpretation PhotometricInterpretation => pixelData.PhotometricInterpretation;
@@ -65,9 +65,6 @@ public class DicomManager : IDicomData
     }
 
     public ushort Width => pixelData.Width;
-
-    public AnatomicPlane DefaultPlane => AnatomicPlane.Axial;
-
     public byte this [int index] => bytes [index];
 
     public static DicomManager FromDicomFolder(string dicomFolder)

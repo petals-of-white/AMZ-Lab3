@@ -45,29 +45,3 @@ public static class AnatomicPlaneRelations
         };
     }
 }
-
-//public static Matrix4x4 PlaneTransformGL(AnatomicPlane sourcePlane, AnatomicPlane targetPlane)
-//{
-//    (var scale, var rotate) =
-//    (sourcePlane, targetPlane) switch
-//    {
-//        (var plane1, var plane2) when plane1 == plane2 => (Matrix4x4.Identity, Matrix4x4.Identity),
-
-//        (AnatomicPlane.Axial, AnatomicPlane.Saggital) => Matrix4x4.CreateScale(),
-
-//        (AnatomicPlane.Axial, AnatomicPlane.Coronal) => Matrix4x4.CreateScale(1, -1, 1),
-
-//        (AnatomicPlane.Saggital, AnatomicPlane.Axial) => Matrix4x4.CreateScale(-1, 1, 1),
-
-//        (AnatomicPlane.Saggital, AnatomicPlane.Coronal) => Matrix4x4.CreateScale(-1, 1, 1),
-
-//        (AnatomicPlane.Coronal, AnatomicPlane.Axial) => Matrix4x4.CreateScale(-1, 1, 1),
-
-//        (AnatomicPlane.Coronal, AnatomicPlane.Saggital) => Matrix4x4.CreateScale(-1, 1, 1),
-
-//        _ => throw new ArgumentException("Either source plane or target plane is not valid.")
-//    };
-
-//    return invertRelativeDepth * PlaneTransform(sourcePlane, targetPlane);
-
-//}

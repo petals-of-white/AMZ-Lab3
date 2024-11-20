@@ -1,12 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Numerics;
-using FellowOakDicom.IO;
 using Lab1.Models;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.Desktop;
 using static Lab1.Views.Graphics.OpenGLHelpers;
 
 namespace Lab1.Views.Graphics;
@@ -44,10 +41,6 @@ public class DicomScene : IDisposable
     public static string FragShaderLoc { get; } = "Shaders/shader.frag";
     public static string VertShaderLoc { get; } = "Shaders/shader.vert";
     public bool IsTextureLoaded { get; private set; } = false;
-
-    //public static float CalculateDepth(AnatomicPlane sourcePlane, AnatomicPlane targetPlane, int width, int height, int depth)
-    //{
-    //}
 
     public static Matrix4 ToOpenTKMatrix(Matrix4x4 matrix) => new(
         matrix.M11, matrix.M12, matrix.M13, matrix.M14,
@@ -97,14 +90,11 @@ public class DicomScene : IDisposable
                     throw new NotImplementedException("Dicom HUH");
             }
 
-            //Matrix4x4 addDepth = Matrix4x4.CreateTranslation(0, 0, -relativeDepth);
             Matrix4x4 addDepth = AnatomicPlaneRelations.AddDepth((AnatomicPlane) sourcePlane!, targetPlane, relativeDepth);
 
             Matrix4x4 changePlanes = AnatomicPlaneRelations.PlaneTransform((AnatomicPlane) sourcePlane!, targetPlane);
 
-            //var transformMatrix = Matrix4x4.CreateTranslation(relativeDepth, 0, 0) * changePlanes;
-            var transformMatrix = Matrix4x4.CreateTranslation(0,0, relativeDepth) * changePlanes; 
-            //var transformMatrix = changePlanes * Matrix4x4.CreateTranslation(0,0,relativeDepth);
+            var transformMatrix = Matrix4x4.CreateTranslation(0, 0, relativeDepth) * changePlanes;
 
             var opentkmatrix = ToOpenTKMatrix(transformMatrix);
 
@@ -113,7 +103,6 @@ public class DicomScene : IDisposable
             GL.BindVertexArray(vao);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            //var checkData = GetBufferSubData(gl, 16);
 
             GL.UseProgram(program);
 

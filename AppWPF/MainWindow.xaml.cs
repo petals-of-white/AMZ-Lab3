@@ -11,10 +11,6 @@ namespace Lab1.App;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private ExampleScene scene1 = new ExampleScene();
-    private ExampleScene scene2 = new ExampleScene();
-    private ExampleScene scene3 = new ExampleScene();
-
     public MainWindow()
     {
         InitializeComponent();
@@ -62,6 +58,5 @@ public partial class MainWindow : Window
         axialViewer.ViewModel.DisplayROICommand.Execute(null);
         coronalViewer.ViewModel.DisplayROICommand.Execute(null);
         sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
-        //Command="{Binding ElementName=axialViewer,Path=ViewModel.DisplayROICommand}"
     }
 }

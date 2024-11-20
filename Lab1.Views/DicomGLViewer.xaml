@@ -20,8 +20,8 @@
     <Canvas x:Name="canvas" MouseLeftButtonDown="DisplayRegionClick">
         <openTK:GLWpfControl
             x:Name="openTkControl"
-            Width="{Binding DisplayWidth}"
-            Height="{Binding DisplayHeight}"
+            Width="{Binding DicomManager.Width}"
+            Height="{Binding DicomManager.Height}"
             Render="OpenTkControl_Render" />
         <Rectangle
             x:Name="roiRegion" Stroke="Yellow" StrokeThickness="2"

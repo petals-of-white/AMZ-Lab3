@@ -21,7 +21,6 @@ public class DicomViewModel : SimpleNotifier
         SetPointCommand = new RelayCommand<PointF>(SetPoint);
         DisplayROICommand = new RelayCommand(ToggleROI);
         SelectRegionCommand = new RelayCommand<Models.Shapes.Rectangle>(SelectRegion);
-        //AdvanceDepthCommand = new RelayCommand<int>(AdvanceInDepth);
     }
 
     public AnatomicPlane CurrentPlane
@@ -41,7 +40,6 @@ public class DicomViewModel : SimpleNotifier
         }
     }
 
-    //public ICommand AdvanceDepthCommand { get; }
     public IDicomData? DicomManager
     {
         get => dicomData;
