@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lab1.Models;
+namespace Lab1.Models.Histogram;
 
 public interface IHistogram<TPixel>
 {

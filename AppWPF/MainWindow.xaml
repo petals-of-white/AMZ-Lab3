@@ -58,7 +58,7 @@
                         DataContext="{Binding ElementName=axialViewer, Path=ViewModel}"
                         TickPlacement="BottomRight"
                         Minimum="1"
-                        Maximum="{Binding DicomManager.Depth}"
+                        Maximum="{Binding DicomData.Depth}"
                         x:Name="axialSlider"
                         Value="{Binding CurrentSlice}" />
                 <Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
@@ -67,7 +67,7 @@
                         x:Name="coronalSlider"
                         Minimum="1"
                         DataContext="{Binding ElementName=coronalViewer, Path=ViewModel}"
-                        Maximum="{Binding DicomManager.Height}"
+                        Maximum="{Binding DicomData.Height}"
                         TickFrequency="1"
                         Value="{Binding CurrentSlice}" />
 
@@ -76,7 +76,7 @@
                     TickPlacement="BottomRight"
                     x:Name="saggitalSlider" Minimum="1"
                     DataContext="{Binding ElementName=sagittalViewer, Path=ViewModel}"
-                    Maximum="{Binding DicomManager.Width}"
+                    Maximum="{Binding DicomData.Width}"
                     Value="{Binding CurrentSlice}"
                     TickFrequency="1" />
             </StackPanel>

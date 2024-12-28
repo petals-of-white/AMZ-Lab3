@@ -1,4 +1,5 @@
-﻿using Lab1.Models.Shapes;
+﻿using Lab1.Models.Histogram;
+using Lab1.Models.Shapes;
 
 namespace Lab1.Models.Tools.ROI;
 

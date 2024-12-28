@@ -1,4 +1,5 @@
 ﻿using Lab1.Models.Shapes;
+using Lab1.ViewModels.Tools.ROI;
 
 namespace Lab1.ViewModels;
 
@@ -27,7 +28,16 @@ public abstract class RectangleROIViewModel : ROIViewModel
         Region = region;
     }
 
-    public override void SetPoint(System.Drawing.PointF point)
+    //protected override void ToggleROI()
+    //{
+    //    IsShown = !IsShown;
+    //    //var roi = (SelectedROI ??= new RectangleRegion(new(), false, true));
+    //    //SelectedROI = roi with { IsDisplayed = !roi.IsDisplayed };
+    //    //NotifyPropertyChanged(nameof(IsShown));
+    //    //NotifyPropertyChanged(nameof(ROIInfo));
+    
+    //}
+    protected override void SetPoint(System.Drawing.PointF point)
     {
         if (IsActive)
         {

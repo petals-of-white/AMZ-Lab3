@@ -40,10 +40,10 @@ public class DicomViewModel : SimpleNotifier
         }
     }
 
-    public IDicomData? DicomManager
+    public IDicomData? DicomData
     {
         get => dicomData;
-        private set { dicomData = value; NotifyPropertyChanged(nameof(DicomManager)); }
+        private set { dicomData = value; NotifyPropertyChanged(nameof(DicomData)); }
     }
 
     public int? DisplayHeight => (currentPlane, dicomData) switch
@@ -71,6 +71,8 @@ public class DicomViewModel : SimpleNotifier
         _ => null
     };
 
+
+
     public RectangleRegion? SelectedROI
     {
         get => selectedROI;
@@ -93,7 +95,7 @@ public class DicomViewModel : SimpleNotifier
 
     private void SetDicom(IDicomData dicom)
     {
-        DicomManager = dicom;
+        DicomData = dicom;
         NotifyPropertyChanged(nameof(ROIInfo));
         NotifyPropertyChanged(nameof(DisplayHeight));
         NotifyPropertyChanged(nameof(DisplayWidth));

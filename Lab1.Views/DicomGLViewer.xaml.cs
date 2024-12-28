@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Lab1.Models;
 using Lab1.ViewModels;
 using Lab1.Views.Graphics;
@@ -18,7 +19,7 @@ public partial class DicomGLViewer : UserControl
     private (float, float, float, float) color = (Random.Shared.NextSingle(), Random.Shared.NextSingle(), Random.Shared.NextSingle(), 1);
     private DicomScene? glState;
     private DicomViewModel viewModel = new();
-
+    private RectangleROIViewModel? roiViewModel;
     public DicomGLViewer()
     {
         InitializeComponent();
@@ -65,12 +66,24 @@ public partial class DicomGLViewer : UserControl
 
     private void DisplayRegionClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (viewModel.DicomManager is not null && viewModel.SelectedROI is not null)
+        //if (viewModel.DicomData is not null && viewModel.SelectedROI is not null)
+        //{
+        //    var control = (UIElement) sender;
+        //    var coords = e.GetPosition(control);
+        //    viewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
+        //}
+
+        if (viewModel.DicomData is not null)
         {
             var control = (UIElement) sender;
             var coords = e.GetPosition(control);
-            viewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
+            
+            (roiViewModel ??= null).SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
         }
+        //else if (viewModel.DicomData is not null && roiViewModel is null)
+        //{
+            //roiViewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
+        //}
     }
 
     private void OpenTkControl_Render(TimeSpan obj)
@@ -82,7 +95,7 @@ public partial class DicomGLViewer : UserControl
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(viewModel.DicomManager) && viewModel.DicomManager is DicomManager dicom)
+        if (e.PropertyName == nameof(viewModel.DicomData) && viewModel.DicomData is DicomManager dicom)
         {
             glState?.LoadDicomTexture(dicom);
         }
