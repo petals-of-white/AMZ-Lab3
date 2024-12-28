@@ -64,6 +64,7 @@ public class DicomViewModel : SimpleNotifier
         _ => null
     };
 
+
     public IRegionOfInterestInfo? ROIInfo => (selectedROI, dicomData) switch
     {
         (RectangleRegion { IsDisplayed: true, Region: var region }, IDicomData dicomData) => new DicomRectangleROI(region, dicomData),
@@ -90,7 +91,7 @@ public class DicomViewModel : SimpleNotifier
         null => null
     };
 
-    private void SetDicom(DicomManager dicom)
+    private void SetDicom(IDicomData dicom)
     {
         DicomManager = dicom;
         NotifyPropertyChanged(nameof(ROIInfo));

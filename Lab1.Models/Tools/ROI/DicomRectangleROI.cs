@@ -7,4 +7,5 @@ public record class DicomRectangleROI(Rectangle Region, IDicomData DicomData) : 
     public override double PixelWidth => DicomData.PixelSpacing.HorizontalSpacing;
 
     public override double PixelHeight => DicomData.PixelSpacing.VerticalSpacing;
+
 }
