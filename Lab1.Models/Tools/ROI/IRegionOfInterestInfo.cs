@@ -8,4 +8,3 @@ public interface IRegionOfInterestInfo
     double Area { get; }
     int NumberOfPixels { get; }
 }
-

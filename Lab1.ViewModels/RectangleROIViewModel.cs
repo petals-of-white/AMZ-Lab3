@@ -1,48 +1,47 @@
-﻿using Lab1.Models.Shapes;
-using Lab1.ViewModels.Tools.ROI;
+﻿using Lab1.Models.Histogram;
+using Lab1.Models.Shapes;
 
 namespace Lab1.ViewModels;
 
-public abstract class RectangleROIViewModel : ROIViewModel
+public class RectangleROIViewModel : ROIViewModel
 {
-    private readonly System.Drawing.PointF startPoint;
-    private Rectangle region;
+    private readonly RectangleROIDicomDataHistogram histogram;
+    //private Rectangle region;
 
-    public RectangleROIViewModel(System.Drawing.PointF startPoint)
+    public RectangleROIViewModel(System.Drawing.PointF startPoint,
+        RectangleROIDicomDataHistogram histogram)
+
     {
-        this.startPoint = startPoint;
+        this.histogram = histogram;
         Region = new Rectangle(startPoint, startPoint);
     }
+
+    public override IHistogram<short> Histogram => histogram;
+
     public Rectangle Region
     {
-        get => region; private set
+        get => histogram.Region; private set
         {
-            region = value;
-
+            histogram.Region = value;
             NotifyPropertyChanged(nameof(Region));
+            NotifyPropertyChanged(nameof(Histogram));
         }
     }
 
-    public RectangleROIViewModel(Rectangle region)
+    public int SliceNumber
     {
-        Region = region;
+        get => histogram.SliceNumber; set
+        {
+            histogram.SliceNumber = value;
+            NotifyPropertyChanged(nameof(SliceNumber));
+        }
     }
 
-    //protected override void ToggleROI()
-    //{
-    //    IsShown = !IsShown;
-    //    //var roi = (SelectedROI ??= new RectangleRegion(new(), false, true));
-    //    //SelectedROI = roi with { IsDisplayed = !roi.IsDisplayed };
-    //    //NotifyPropertyChanged(nameof(IsShown));
-    //    //NotifyPropertyChanged(nameof(ROIInfo));
-    
-    //}
     protected override void SetPoint(System.Drawing.PointF point)
     {
-        if (IsActive)
-        {
-            Region = Region with { P2 = point };
-
-        }
+        //if (IsActive)
+        //{
+        Region = Region with { P2 = point };
+        //}
     }
 }

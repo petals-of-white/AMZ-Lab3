@@ -30,24 +30,24 @@
             d:Height="50"
             d:Canvas.Top="150"
             d:Canvas.Left="100"
-            Visibility="{Binding SelectedROI.IsDisplayed, Converter={StaticResource visibilityConverter}}"
-            Height="{Binding SelectedROI.Region.Height}"
-            Width="{Binding SelectedROI.Region.Width}"
-            Canvas.Left="{Binding SelectedROI.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
-            Canvas.Top="{Binding SelectedROI.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}" />
-        <Border BorderBrush="Red"
+            Visibility="{Binding ROIViewModel.IsShown, Converter={StaticResource visibilityConverter}}"
+            Height="{Binding ROIViewModel.Region.Height}"
+            Width="{Binding ROIViewModel.Region.Width}"
+            Canvas.Left="{Binding ROIViewModel.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
+            Canvas.Top="{Binding ROIViewModel.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}" />
+        <!--<Border BorderBrush="Red"
                 BorderThickness="2"
-                Visibility="{Binding SelectedROI.IsDisplayed, Converter={StaticResource visibilityConverter}}"
+                Visibility="{Binding ROIViewModel.IsShown, Converter={StaticResource visibilityConverter}}"
                 d:Canvas.Top="50"
                 d:Canvas.Left="175"
-                Canvas.Left="{Binding SelectedROI.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
-                Canvas.Top="{Binding SelectedROI.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}">
-            <TextBlock
+                Canvas.Left="{Binding ROIViewModel.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
+                Canvas.Top="{Binding ROIViewModel.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}">
+            --><!--<TextBlock
                 Height="35" Width="100"
                 Foreground="White"
                 Background="#90FFFF00"
                 d:Text="ROI Info"
-                Text="{Binding ROIInfo, Converter={StaticResource roiToTextConverter}}" />
-        </Border>
+                Text="{Binding ROIInfo, Converter={StaticResource roiToTextConverter}}" />--><!--
+        </Border>-->
     </Canvas>
 </UserControl>

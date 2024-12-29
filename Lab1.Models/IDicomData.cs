@@ -12,4 +12,5 @@ public interface IDicomData : IReadOnlyList<byte>
     PixelRepresentation PixelRepresentation { get; }
     (double VerticalSpacing, double HorizontalSpacing) PixelSpacing { get; }
     ushort Width { get; }
+
 }

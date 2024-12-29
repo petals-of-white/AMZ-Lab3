@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Lab1.Models;
 using Lab1.ViewModels;
 using Lab1.Views.Graphics;
@@ -16,15 +15,29 @@ namespace Lab1.Views;
 
 public partial class DicomGLViewer : UserControl
 {
-    private (float, float, float, float) color = (Random.Shared.NextSingle(), Random.Shared.NextSingle(), Random.Shared.NextSingle(), 1);
+    //private (float, float, float, float) color = (Random.Shared.NextSingle(), Random.Shared.NextSingle(), Random.Shared.NextSingle(), 1);
     private DicomScene? glState;
+
+    //private RectangleROIViewModel? roiViewModel;
     private DicomViewModel viewModel = new();
-    private RectangleROIViewModel? roiViewModel;
+
     public DicomGLViewer()
     {
         InitializeComponent();
         ViewModel = new();
     }
+
+    //public RectangleROIViewModel? ROIViewModel
+    //{
+    //    get => roiViewModel; set
+    //    {
+    //        //roiViewModel.PropertyChanged -= ROIViewModel_PropertyChanged;
+
+    //        //value.PropertyChanged += ROIViewModel_PropertyChanged;
+
+    //        roiViewModel = value;
+    //    }
+    //}
 
     public DicomViewModel ViewModel
     {
@@ -52,10 +65,6 @@ public partial class DicomGLViewer : UserControl
             Debug.WriteLine($"OpenGL Debug: {Marshal.PtrToStringAnsi(message)}");
         }, IntPtr.Zero);
 
-        (float r, float g, float b, float a) = color;
-
-        GL.ClearColor(r, g, b, a);
-
         return openTkControl.Context!;
     }
 
@@ -73,16 +82,28 @@ public partial class DicomGLViewer : UserControl
         //    viewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
         //}
 
-        if (viewModel.DicomData is not null)
+        if (viewModel.DicomData is IDicomData dicomData)
         {
             var control = (UIElement) sender;
             var coords = e.GetPosition(control);
-            
-            (roiViewModel ??= null).SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
+            var newPoint = new PointF((float) coords.X, (float) coords.Y);
+
+            //if (roiViewModel is null)
+            //{
+            //    roiViewModel = new(
+            //        newPoint,
+            //        new RectangleROIDicomDataHistogram(viewModel.DicomData, viewModel.CurrentSlice),
+            //        new RectangleRegionOfInterest(
+            //            default,
+            //            dicomData.PixelSpacing.VerticalSpacing,
+            //            dicomData.PixelSpacing.HorizontalSpacing));
+            //}
+
+            viewModel.ROIViewModel?.SetPointCommand.Execute(newPoint);
         }
         //else if (viewModel.DicomData is not null && roiViewModel is null)
         //{
-            //roiViewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
+        //roiViewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
         //}
     }
 
@@ -91,6 +112,11 @@ public partial class DicomGLViewer : UserControl
         openTkControl.Context?.MakeCurrent();
         GL.Clear(ClearBufferMask.ColorBufferBit);
         glState?.DrawVertices(viewModel.CurrentPlane, viewModel.CurrentSlice);
+    }
+
+    private void ROIViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        //if (e.PropertyName == nameof(roiViewModel.))
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)

@@ -3,6 +3,7 @@ using Lab1.Models;
 using Lab1.Views.Graphics;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
+using ScottPlot;
 
 namespace Lab1.App;
 
@@ -35,8 +36,58 @@ public partial class MainWindow : Window
         DicomScene dicomScene = new();
 
         axialViewer.LoadScene(dicomScene);
-        sagittalViewer.LoadScene(dicomScene);
-        coronalViewer.LoadScene(dicomScene);
+        //sagittalViewer.LoadScene(dicomScene);
+        //coronalViewer.LoadScene(dicomScene);
+
+
+        //double [] heights = SampleData.MaleHeights();
+        //var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, heights);
+
+        //var barPlot = WpfPlot1.Plot.Add.Bars();
+
+
+        //// Customize the style of each bar
+        //foreach (var bar in barPlot.Bars)
+        //{
+        //    bar.Size = hist.FirstBinSize;
+        //    bar.LineWidth = 0;
+        //    bar.FillStyle.AntiAlias = false;
+        //}
+        //WpfPlot1.Plot.Axes.Margins(bottom: 0);
+        //WpfPlot1.Plot.YLabel("Number of People");
+        //WpfPlot1.Plot.XLabel("Height (cm)");
+
+        //WpfPlot1.Refresh();
+    }
+
+    private void DrawHistogram(IReadOnlyCollection<short> pixels) {
+        double [] heights = SampleData.MaleHeights();
+        var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, pixels.Select(px => (double) px));
+
+
+        var barPlot = WpfHistogram1.Plot.Add.Bars(hist.Bins, hist.Counts);
+
+
+        // Customize the style of each bar
+        foreach (var bar in barPlot.Bars)
+        {
+            bar.Size = hist.FirstBinSize;
+            bar.LineWidth = 0;
+            bar.FillStyle.AntiAlias = false;
+        }
+        WpfHistogram1.Plot.Axes.Margins(bottom: 0);
+        WpfHistogram1.Plot.YLabel("Number of People");
+        WpfHistogram1.Plot.XLabel("Height (cm)");
+
+        WpfHistogram1.Refresh();
+    }
+    private void ROIViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+
+        if (e.PropertyName == nameof(axialViewer.ViewModel.ROIViewModel.Histogram))
+        {
+            DrawHistogram(axialViewer.ViewModel.ROIViewModel.Histogram.PixelsInRegion());
+        }
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
@@ -48,15 +99,20 @@ public partial class MainWindow : Window
             var dicomData = DicomManager.FromFiles(files);
 
             axialViewer.ViewModel.SetDicomCommand.Execute(dicomData);
-            sagittalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
-            coronalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
+            axialViewer.ViewModel.ROIViewModel!.PropertyChanged += ROIViewModel_PropertyChanged;
+
+            //sagittalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
+            //coronalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
         }
     }
 
     private void RoiBtn_Click(object sender, RoutedEventArgs e)
     {
-        axialViewer.ViewModel.DisplayROICommand.Execute(null);
-        coronalViewer.ViewModel.DisplayROICommand.Execute(null);
-        sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
+        //axialViewer.ViewModel.DisplayROICommand.Execute(null);
+        //coronalViewer.ViewModel.DisplayROICommand.Execute(null);
+        //sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
+        axialViewer.ViewModel.ROIViewModel?.ToggleROICommand.Execute(null);
+        //coronalViewer.ViewModel.DisplayROICommand.Execute(null);
+        //sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
     }
 }

@@ -9,4 +9,5 @@ namespace Lab1.Models.Histogram;
 public interface IHistogram<TPixel>
 {
     IReadOnlyDictionary<TPixel, int> GetHistogram();
+    IReadOnlyCollection<TPixel> PixelsInRegion();
 }

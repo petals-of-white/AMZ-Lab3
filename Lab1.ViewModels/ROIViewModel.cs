@@ -14,32 +14,20 @@ namespace Lab1.ViewModels;
 
 public abstract class ROIViewModel : SimpleNotifier
 {
-    bool isActive, isShown;
+    private bool isActive, isShown;
 
-    public abstract IRegionOfInterestInfo ROIInfo { get; }
-    public abstract IHistogram<TPixel> Histogram<TPixel>();
     public ROIViewModel()
     {
         SetPointCommand = new RelayCommand<PointF>(SetPoint);
         ToggleROICommand = new RelayCommand(ToggleROI);
-
-
     }
-    public ICommand SetPointCommand { get; }
-    public ICommand ToggleROICommand { get; }
-    protected abstract void SetPoint(PointF point);
+
     public bool IsActive
     {
         get => isActive; set
         {
             isActive = value; NotifyPropertyChanged(nameof(IsActive));
         }
-    }
-
-    //protected abstract void ToggleROI();
-    protected void ToggleROI()
-    {
-        IsShown = !IsShown;
     }
 
     public bool IsShown
@@ -50,4 +38,16 @@ public abstract class ROIViewModel : SimpleNotifier
         }
     }
 
+    public ICommand SetPointCommand { get; }
+
+    public ICommand ToggleROICommand { get; }
+
+    public abstract IHistogram<short> Histogram { get; }
+
+    protected abstract void SetPoint(PointF point);
+
+    protected void ToggleROI()
+    {
+        IsShown = !IsShown;
+    }
 }

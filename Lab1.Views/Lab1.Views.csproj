@@ -12,6 +12,7 @@
     <PackageReference Include="fo-dicom" Version="5.1.5" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="OpenTK.GLWpfControl" Version="4.3.3" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.47" />
     <PackageReference Include="SharpGL.WPF" Version="3.1.1" />
   </ItemGroup>
 

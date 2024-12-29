@@ -48,7 +48,7 @@ public class DicomManager : IDicomData
     }
 
     public BitDepth BitDepth => pixelData.BitDepth;
-    public int Count => Width * Height * Depth;
+    public int Count => bytes.Count;
     public AnatomicPlane DefaultPlane => AnatomicPlane.Axial;
     public int Depth { get; private set; }
     public ushort Height => pixelData.Height;
