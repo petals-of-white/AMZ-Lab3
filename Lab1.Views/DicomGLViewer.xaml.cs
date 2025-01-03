@@ -88,23 +88,9 @@ public partial class DicomGLViewer : UserControl
             var coords = e.GetPosition(control);
             var newPoint = new PointF((float) coords.X, (float) coords.Y);
 
-            //if (roiViewModel is null)
-            //{
-            //    roiViewModel = new(
-            //        newPoint,
-            //        new RectangleROIDicomDataHistogram(viewModel.DicomData, viewModel.CurrentSlice),
-            //        new RectangleRegionOfInterest(
-            //            default,
-            //            dicomData.PixelSpacing.VerticalSpacing,
-            //            dicomData.PixelSpacing.HorizontalSpacing));
-            //}
-
             viewModel.ROIViewModel?.SetPointCommand.Execute(newPoint);
         }
-        //else if (viewModel.DicomData is not null && roiViewModel is null)
-        //{
-        //roiViewModel.SetPointCommand.Execute(new PointF((float) coords.X, (float) coords.Y));
-        //}
+
     }
 
     private void OpenTkControl_Render(TimeSpan obj)

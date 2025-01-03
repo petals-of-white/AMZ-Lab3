@@ -7,14 +7,19 @@
     xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
     xmlns:local="clr-namespace:Lab1.Views"
     xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+    xmlns:converters="clr-namespace:Lab1.Views.Converters"
     Title="MainWindow"
     Width="800"
     Height="568"
     mc:Ignorable="d">
     <Window.Resources>
+        <converters:VisibilityConverter x:Key="visibilityConverter" />
+        <converters:ManyBoolConverter x:Key="manyBoolConverter" />
         <viewmodels:DicomViewModel x:Key="axialViewModel" CurrentPlane="Axial" />
         <viewmodels:DicomViewModel x:Key="coronalViewMode" CurrentPlane="Coronal" />
         <viewmodels:DicomViewModel x:Key="sagittalViewModel" CurrentPlane="Saggital" />
+        <viewmodels:ImageStatisticsViewModel x:Key="statistics1DViewModel" />
+        <viewmodels:ImageStatistics2DViewModel x:Key="statistics2DViewModel" />
     </Window.Resources>
 
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
@@ -32,6 +37,7 @@
                 Background="#FFCAEFB9"
                 Content="Зона дослідження"
                 Click="RoiBtn_Click" />
+            <Button x:Name="toggleStatBtn" Click="toggleStatBtn_Click"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal">
@@ -80,8 +86,26 @@
                     Maximum="{Binding DicomData.Width}"
                     Value="{Binding CurrentSlice}"
                     TickFrequency="1" />
-                <ScottPlot:WpfPlot x:Name="WpfHistogram1" Height="200"/>
-                <TextBlock x:Name="imageStatistics" />
+                <ScottPlot:WpfPlot x:Name="WpfHistogram1" Height="200" />
+                <CheckBox Content="Показати статистику" >
+                    <CheckBox.IsChecked>
+                        <MultiBinding Converter="{StaticResource manyBoolConverter}" Mode="TwoWay">
+                            <Binding Path="IsShown" Source="{StaticResource statistics1DViewModel}" />
+                            <Binding Path="IsShown" Source="{StaticResource statistics2DViewModel}" />
+
+                            <!--<Binding Source="" Path="ImageStatsViewModel.IsShown" />
+                            <Binding Path="ImageStats2DViewModel.IsShown"/>-->
+
+                        </MultiBinding>
+                    </CheckBox.IsChecked>
+                </CheckBox>
+                <TextBlock 
+                    x:Name="imageStatistics" DataContext="{StaticResource statistics1DViewModel}"
+                    Visibility="{Binding IsShown, Converter={StaticResource visibilityConverter}}">
+                    
+                    <Run Text="{Binding Path=Mean, Mode=OneWay, StringFormat='Математичне сподівання {0}'}"/>
+                    <LineBreak/>
+                </TextBlock>
             </StackPanel>
         </StackPanel>
     </StackPanel>

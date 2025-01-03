@@ -5,9 +5,14 @@ namespace Lab1.ViewModels;
 public class ImageStatisticsViewModel : SimpleNotifier
 {
     private bool isShown = false;
-    private IReadOnlyCollection<double> pixels;
+    private IReadOnlyCollection<ushort> pixels;
 
-    public ImageStatisticsViewModel(IReadOnlyCollection<double> pixels) => this.pixels = pixels;
+    public ImageStatisticsViewModel()
+    {
+        pixels = [];
+    }
+
+    public ImageStatisticsViewModel(IReadOnlyCollection<ushort> pixels) => this.pixels = pixels;
 
     public bool IsShown
     {
@@ -19,9 +24,9 @@ public class ImageStatisticsViewModel : SimpleNotifier
         }
     }
 
-    public double Mean => pixels.Mean();
+    public double Mean => pixels.Select(p => (double) p).Mean();
 
-    public IReadOnlyCollection<double> Pixels
+    public IReadOnlyCollection<ushort> Pixels
     {
         get => pixels; set
         {
@@ -33,6 +38,6 @@ public class ImageStatisticsViewModel : SimpleNotifier
         }
     }
 
-    public double StdDeviation => pixels.StandardDeviation();
-    public double Variance => pixels.Variance();
+    public double StdDeviation => pixels.Select(p => (double) p).StandardDeviation();
+    public double Variance => pixels.Select(p => (double) p).Variance();
 }

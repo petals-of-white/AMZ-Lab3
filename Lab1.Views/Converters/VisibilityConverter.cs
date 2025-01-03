@@ -10,6 +10,7 @@ public class VisibilityConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         bool isVisible = (bool) value;
+
         if (isVisible) return Visibility.Visible;
         else return Visibility.Hidden;
     }

@@ -22,6 +22,8 @@ public abstract class ROIViewModel : SimpleNotifier
         ToggleROICommand = new RelayCommand(ToggleROI);
     }
 
+    public abstract IHistogram<short> Histogram { get; }
+
     public bool IsActive
     {
         get => isActive; set
@@ -38,11 +40,10 @@ public abstract class ROIViewModel : SimpleNotifier
         }
     }
 
+    public abstract IReadOnlyCollection<short> SelectedPixels { get; }
     public ICommand SetPointCommand { get; }
 
     public ICommand ToggleROICommand { get; }
-
-    public abstract IHistogram<short> Histogram { get; }
 
     protected abstract void SetPoint(PointF point);
 

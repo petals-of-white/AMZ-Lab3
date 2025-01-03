@@ -10,6 +10,13 @@ public class ImageStatistics2DViewModel : SimpleNotifier
     private Matrix<double> probabilityMatrix;
     private IReadOnlyCollection<ushort> secondImage;
 
+    public ImageStatistics2DViewModel()
+    {
+        firstImage = [];
+        secondImage = [];
+        MaxAllowedValue = 1024;
+    }
+
     public ImageStatistics2DViewModel(IReadOnlyCollection<ushort> first, IReadOnlyCollection<ushort> second, ushort maxAllowedValue)
     {
         firstImage = first;
@@ -24,7 +31,16 @@ public class ImageStatistics2DViewModel : SimpleNotifier
     public IReadOnlyCollection<ushort> FirstImage
     {
         get => firstImage;
-        set { firstImage = value; NotifyPropertyChanged(nameof(FirstImage)); }
+        set
+        {
+            firstImage = value;
+            NotifyPropertyChanged(nameof(FirstImage));
+            FillProbabilityMatrix(MaxAllowedValue);
+            NotifyPropertyChanged(nameof(MaxAllowedValue));
+            NotifyPropertyChanged(nameof(Energy2D));
+            NotifyPropertyChanged(nameof(Enthropy2D));
+            NotifyPropertyChanged(nameof(InverseDifference));
+        }
     }
 
     public double InverseDifference
@@ -55,13 +71,32 @@ public class ImageStatistics2DViewModel : SimpleNotifier
     public ushort MaxAllowedValue
     {
         get => (ushort) probabilityMatrix.ColumnCount;
-        set => FillProbabilityMatrix(value);
+        set
+        {
+            FillProbabilityMatrix(value);
+            NotifyPropertyChanged(nameof(MaxAllowedValue));
+            NotifyPropertyChanged(nameof(Energy2D));
+            NotifyPropertyChanged(nameof(Enthropy2D));
+            NotifyPropertyChanged(nameof(InverseDifference));
+        }
     }
 
     public IReadOnlyCollection<ushort> SecondImage
     {
         get => secondImage;
-        set { secondImage = value; NotifyPropertyChanged(nameof(SecondImage)); }
+        set
+        {
+            secondImage = value;
+
+            NotifyPropertyChanged(nameof(SecondImage));
+
+            FillProbabilityMatrix(MaxAllowedValue);
+
+            NotifyPropertyChanged(nameof(MaxAllowedValue));
+            NotifyPropertyChanged(nameof(Energy2D));
+            NotifyPropertyChanged(nameof(Enthropy2D));
+            NotifyPropertyChanged(nameof(InverseDifference));
+        }
     }
 
     private void FillProbabilityMatrix(ushort maxAllowedValue)

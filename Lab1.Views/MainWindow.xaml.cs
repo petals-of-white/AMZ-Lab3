@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using Lab1.Models;
+using Lab1.ViewModels;
 using Lab1.Views.Graphics;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
@@ -14,6 +15,8 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
+        //ImageStatsViewModel = new();
+        //ImageStats2DViewModel = new();
         InitializeComponent();
 
         var settings = new GLWpfControlSettings()
@@ -26,7 +29,6 @@ public partial class MainWindow : Window
 
         IGraphicsContext glContext = axialViewer.InitOpenGL(settings);
 
-
         settings.ContextToUse = glContext;
         glContext.MakeCurrent();
         DicomScene dicomScene = new();
@@ -37,20 +39,20 @@ public partial class MainWindow : Window
 
         //coronalViewer.InitOpenGL(settings);
 
-
         //sagittalViewer.LoadScene(dicomScene);
         //coronalViewer.LoadScene(dicomScene);
     }
 
+    public ImageStatistics2DViewModel ImageStats2DViewModel => (ImageStatistics2DViewModel) Resources ["statistics2DViewModel"];
+    public ImageStatisticsViewModel ImageStatsViewModel => (ImageStatisticsViewModel) Resources ["statistics1DViewModel"];
 
-
-    private void DrawHistogram(IReadOnlyCollection<short> pixels) {
+    private void DrawHistogram(IReadOnlyCollection<short> pixels)
+    {
         double [] heights = SampleData.MaleHeights();
         var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, pixels.Select(px => (double) px));
 
         WpfHistogram1.Plot.Clear();
         var barPlot = WpfHistogram1.Plot.Add.Bars(hist.Bins, hist.Counts);
-
 
         // Customize the style of each bar
         foreach (var bar in barPlot.Bars)
@@ -65,14 +67,6 @@ public partial class MainWindow : Window
 
         WpfHistogram1.Refresh();
     }
-    private void ROIViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-
-        if (e.PropertyName == nameof(axialViewer.ViewModel.ROIViewModel.Histogram))
-        {
-            DrawHistogram(axialViewer.ViewModel.ROIViewModel.Histogram.PixelsInRegion());
-        }
-    }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
     {
@@ -84,19 +78,29 @@ public partial class MainWindow : Window
 
             axialViewer.ViewModel.SetDicomCommand.Execute(dicomData);
             axialViewer.ViewModel.ROIViewModel!.PropertyChanged += ROIViewModel_PropertyChanged;
-
-            //sagittalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
-            //coronalViewer.ViewModel.SetDicomCommand.Execute(dicomData);
         }
     }
 
     private void RoiBtn_Click(object sender, RoutedEventArgs e)
     {
-        //axialViewer.ViewModel.DisplayROICommand.Execute(null);
-        //coronalViewer.ViewModel.DisplayROICommand.Execute(null);
-        //sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
         axialViewer.ViewModel.ROIViewModel?.ToggleROICommand.Execute(null);
-        //coronalViewer.ViewModel.DisplayROICommand.Execute(null);
-        //sagittalViewer.ViewModel.DisplayROICommand.Execute(null);
+    }
+
+    private void ROIViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(axialViewer.ViewModel.ROIViewModel.Histogram))
+        {
+            DrawHistogram(axialViewer.ViewModel.ROIViewModel.Histogram.PixelsInRegion());
+        }
+        if (e.PropertyName == nameof(ROIViewModel.SelectedPixels))
+        {
+            ImageStatsViewModel.Pixels = axialViewer.ViewModel.ROIViewModel.SelectedPixels.Select(px => (ushort) px).ToArray();
+        }
+    }
+
+    private void toggleStatBtn_Click(object sender, RoutedEventArgs e)
+    {
+        ImageStatsViewModel.IsShown = !ImageStatsViewModel.IsShown;
+        ImageStats2DViewModel.IsShown = !ImageStats2DViewModel.IsShown;
     }
 }
