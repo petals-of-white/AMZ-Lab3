@@ -16,10 +16,4 @@
     <ProjectReference Include="..\Lab1.Views\Lab1.Views.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Page Update="MainWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-
 </Project>

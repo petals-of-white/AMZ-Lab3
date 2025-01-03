@@ -1,11 +1,11 @@
 ﻿<Window
-    x:Class="Lab1.App.MainWindow"
+    x:Class="Lab1.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="clr-namespace:Lab1.ViewModels;assembly=Lab1.ViewModels"
-    xmlns:views="clr-namespace:Lab1.Views;assembly=Lab1.Views"
+    xmlns:local="clr-namespace:Lab1.Views"
     xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
     Title="MainWindow"
     Width="800"
@@ -45,11 +45,11 @@
                     <ColumnDefinition Width="256" />
                 </Grid.ColumnDefinitions>
 
-                <views:DicomGLViewer x:Name="axialViewer" Grid.Column="0" Grid.Row="0" ViewModel="{StaticResource axialViewModel}" />
+                <local:DicomGLViewer x:Name="axialViewer" Grid.Column="0" Grid.Row="0" ViewModel="{StaticResource axialViewModel}" />
 
-                <views:DicomGLViewer x:Name="coronalViewer" Grid.Row="0" Grid.Column="1" ViewModel="{StaticResource coronalViewMode}" />
+                <local:DicomGLViewer x:Name="coronalViewer" Grid.Row="0" Grid.Column="1" ViewModel="{StaticResource coronalViewMode}" />
 
-                <views:DicomGLViewer x:Name="sagittalViewer" Grid.Row="1" Grid.Column="0" ViewModel="{StaticResource sagittalViewModel}" />
+                <local:DicomGLViewer x:Name="sagittalViewer" Grid.Row="1" Grid.Column="0" ViewModel="{StaticResource sagittalViewModel}" />
             </Grid>
 
             <StackPanel Width="200"  DockPanel.Dock="Right" Orientation="Vertical">
@@ -81,7 +81,7 @@
                     Value="{Binding CurrentSlice}"
                     TickFrequency="1" />
                 <ScottPlot:WpfPlot x:Name="WpfHistogram1" Height="200"/>
-                
+                <TextBlock x:Name="imageStatistics" />
             </StackPanel>
         </StackPanel>
     </StackPanel>

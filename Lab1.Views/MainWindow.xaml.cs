@@ -5,7 +5,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
 using ScottPlot;
 
-namespace Lab1.App;
+namespace Lab1.Views;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -26,45 +26,29 @@ public partial class MainWindow : Window
 
         IGraphicsContext glContext = axialViewer.InitOpenGL(settings);
 
+
         settings.ContextToUse = glContext;
-
-        sagittalViewer.InitOpenGL(settings);
-
-        coronalViewer.InitOpenGL(settings);
-
         glContext.MakeCurrent();
         DicomScene dicomScene = new();
-
         axialViewer.LoadScene(dicomScene);
+        //axialViewer.ViewModel.ROIViewModel.PropertyChanged += ROIViewModel_PropertyChanged1;
+
+        //sagittalViewer.InitOpenGL(settings);
+
+        //coronalViewer.InitOpenGL(settings);
+
+
         //sagittalViewer.LoadScene(dicomScene);
         //coronalViewer.LoadScene(dicomScene);
-
-
-        //double [] heights = SampleData.MaleHeights();
-        //var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, heights);
-
-        //var barPlot = WpfPlot1.Plot.Add.Bars();
-
-
-        //// Customize the style of each bar
-        //foreach (var bar in barPlot.Bars)
-        //{
-        //    bar.Size = hist.FirstBinSize;
-        //    bar.LineWidth = 0;
-        //    bar.FillStyle.AntiAlias = false;
-        //}
-        //WpfPlot1.Plot.Axes.Margins(bottom: 0);
-        //WpfPlot1.Plot.YLabel("Number of People");
-        //WpfPlot1.Plot.XLabel("Height (cm)");
-
-        //WpfPlot1.Refresh();
     }
+
+
 
     private void DrawHistogram(IReadOnlyCollection<short> pixels) {
         double [] heights = SampleData.MaleHeights();
         var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, pixels.Select(px => (double) px));
 
-
+        WpfHistogram1.Plot.Clear();
         var barPlot = WpfHistogram1.Plot.Add.Bars(hist.Bins, hist.Counts);
 
 

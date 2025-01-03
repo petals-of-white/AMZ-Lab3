@@ -6,6 +6,7 @@ public class RectangleROIDicomDataHistogram : RectangleROIHistogram<short>
     private short [,,] data;
 
     private IDicomData dicomData;
+
     private int sliceNumber;
 
     public RectangleROIDicomDataHistogram(IDicomData dicomData, int sliceNumber)
