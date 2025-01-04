@@ -27,18 +27,6 @@ public partial class DicomGLViewer : UserControl
         ViewModel = new();
     }
 
-    //public RectangleROIViewModel? ROIViewModel
-    //{
-    //    get => roiViewModel; set
-    //    {
-    //        //roiViewModel.PropertyChanged -= ROIViewModel_PropertyChanged;
-
-    //        //value.PropertyChanged += ROIViewModel_PropertyChanged;
-
-    //        roiViewModel = value;
-    //    }
-    //}
-
     public DicomViewModel ViewModel
     {
         get => viewModel;
@@ -90,7 +78,6 @@ public partial class DicomGLViewer : UserControl
 
             viewModel.ROIViewModel?.SetPointCommand.Execute(newPoint);
         }
-
     }
 
     private void OpenTkControl_Render(TimeSpan obj)

@@ -1,10 +1,10 @@
 ﻿using System.Windows;
 using Lab1.Models;
+using Lab1.Models.Histogram;
 using Lab1.ViewModels;
 using Lab1.Views.Graphics;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
-using ScottPlot;
 
 namespace Lab1.Views;
 
@@ -19,6 +19,7 @@ public partial class MainWindow : Window
         //ImageStats2DViewModel = new();
         InitializeComponent();
 
+        HistogramViewModel.PropertyChanged += HistogramViewModel_PropertyChanged;
         var settings = new GLWpfControlSettings()
         {
             MajorVersion = 4,
@@ -33,24 +34,20 @@ public partial class MainWindow : Window
         glContext.MakeCurrent();
         DicomScene dicomScene = new();
         axialViewer.LoadScene(dicomScene);
-        //axialViewer.ViewModel.ROIViewModel.PropertyChanged += ROIViewModel_PropertyChanged1;
-
-        //sagittalViewer.InitOpenGL(settings);
-
-        //coronalViewer.InitOpenGL(settings);
-
-        //sagittalViewer.LoadScene(dicomScene);
-        //coronalViewer.LoadScene(dicomScene);
     }
 
+    public HistogramViewModel HistogramViewModel => (HistogramViewModel) Resources ["histogramViewModel"];
+
     public ImageStatistics2DViewModel ImageStats2DViewModel => (ImageStatistics2DViewModel) Resources ["statistics2DViewModel"];
+
     public ImageStatisticsViewModel ImageStatsViewModel => (ImageStatisticsViewModel) Resources ["statistics1DViewModel"];
 
-    private void DrawHistogram(IReadOnlyCollection<short> pixels)
-    {
-        double [] heights = SampleData.MaleHeights();
-        var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, pixels.Select(px => (double) px));
+    public RectangleROIViewModel? SecondSliceViewModel { get; private set; }
 
+    private void DrawHistogram(IEnumerable<double> pixels)
+    {
+        var hist = ScottPlot.Statistics.Histogram.WithBinCount(10, pixels);
+        //WpfHistogram1.Plot
         WpfHistogram1.Plot.Clear();
         var barPlot = WpfHistogram1.Plot.Add.Bars(hist.Bins, hist.Counts);
 
@@ -62,10 +59,17 @@ public partial class MainWindow : Window
             bar.FillStyle.AntiAlias = false;
         }
         WpfHistogram1.Plot.Axes.Margins(bottom: 0);
-        WpfHistogram1.Plot.YLabel("Number of People");
-        WpfHistogram1.Plot.XLabel("Height (cm)");
+        WpfHistogram1.Plot.YLabel("Кількість вокселів", 30);
+        WpfHistogram1.Plot.Grid.XAxis.TickLabelStyle.FontSize = 20;
+        WpfHistogram1.Plot.Grid.YAxis.TickLabelStyle.FontSize = 20;
+        WpfHistogram1.Plot.XLabel("Інтенсивність", 30);
 
         WpfHistogram1.Refresh();
+    }
+
+    private void HistogramViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        DrawHistogram((sender as HistogramViewModel)!.Data);
     }
 
     private void OpenDicom_Click(object sender, RoutedEventArgs e)
@@ -76,6 +80,7 @@ public partial class MainWindow : Window
             string [] files = dialog.FileNames;
             var dicomData = DicomManager.FromFiles(files);
 
+            SecondSliceViewModel = new(new System.Drawing.PointF(), new RectangleROIDicomDataHistogram(dicomData, 0));
             axialViewer.ViewModel.SetDicomCommand.Execute(dicomData);
             axialViewer.ViewModel.ROIViewModel!.PropertyChanged += ROIViewModel_PropertyChanged;
         }
@@ -88,13 +93,20 @@ public partial class MainWindow : Window
 
     private void ROIViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(axialViewer.ViewModel.ROIViewModel.Histogram))
-        {
-            DrawHistogram(axialViewer.ViewModel.ROIViewModel.Histogram.PixelsInRegion());
-        }
         if (e.PropertyName == nameof(ROIViewModel.SelectedPixels))
         {
-            ImageStatsViewModel.Pixels = axialViewer.ViewModel.ROIViewModel.SelectedPixels.Select(px => (ushort) px).ToArray();
+            DicomViewModel dicomVM = axialViewer.ViewModel;
+            var firstImage = dicomVM.ROIViewModel!.SelectedPixels.Select(px => (ushort) px).ToArray();
+            ImageStatsViewModel.Pixels = firstImage;
+
+            // create a new roi viewmodel with next slice as source
+            var secondSliceROI = new RectangleROIViewModel(dicomVM.ROIViewModel!.Region, new(dicomVM.DicomData!, dicomVM.ROIViewModel.SliceNumber));
+            secondSliceROI.SliceNumber++;
+            var secondImage = secondSliceROI.SelectedPixels.Select(px => (ushort) px).ToArray();
+            ImageStats2DViewModel.FirstImage = firstImage;
+            ImageStats2DViewModel.SecondImage = secondImage;
+
+            HistogramViewModel.Data = (sender as ROIViewModel)!.SelectedPixels.Select(sh => (double) sh).ToArray();
         }
     }
 

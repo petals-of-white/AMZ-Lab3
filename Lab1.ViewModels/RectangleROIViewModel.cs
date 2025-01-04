@@ -6,8 +6,6 @@ namespace Lab1.ViewModels;
 public class RectangleROIViewModel : ROIViewModel
 {
     private readonly RectangleROIDicomDataHistogram histogram;
-
-    //private Rectangle region;
     private System.Drawing.PointF lastPoint;
 
     public RectangleROIViewModel(System.Drawing.PointF startPoint,
@@ -19,7 +17,12 @@ public class RectangleROIViewModel : ROIViewModel
         Region = new Rectangle(startPoint, startPoint);
     }
 
-    public override IHistogram<short> Histogram => histogram;
+    public RectangleROIViewModel(Rectangle region, RectangleROIDicomDataHistogram histogram)
+    {
+        this.histogram = histogram;
+        lastPoint = region.P2;
+        Region = region;
+    }
 
     public Rectangle Region
     {
@@ -28,11 +31,10 @@ public class RectangleROIViewModel : ROIViewModel
             histogram.Region = value;
             NotifyPropertyChanged(nameof(Region));
             NotifyPropertyChanged(nameof(SelectedPixels));
-            NotifyPropertyChanged(nameof(Histogram));
         }
     }
 
-    public override IReadOnlyCollection<short> SelectedPixels => Histogram.PixelsInRegion();
+    public override IReadOnlyCollection<short> SelectedPixels => histogram.PixelsInRegion();
 
     public int SliceNumber
     {
@@ -46,12 +48,7 @@ public class RectangleROIViewModel : ROIViewModel
 
     protected override void SetPoint(System.Drawing.PointF point)
     {
-        //if (IsActive)
-        //{
         Region = new Rectangle(lastPoint, point);
-
-        //Region = Region with { P2 = point };
         lastPoint = point;
-        //}
     }
 }

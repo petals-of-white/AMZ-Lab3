@@ -45,7 +45,7 @@ public class DicomViewModel : SimpleNotifier
             dicomData = value;
             NotifyPropertyChanged(nameof(DicomData));
             if (value is not null)
-                ROIViewModel = new(default, new RectangleROIDicomDataHistogram(value, CurrentSlice)) { IsShown = true };
+                ROIViewModel = new(new System.Drawing.PointF(), new RectangleROIDicomDataHistogram(value, CurrentSlice)) { IsShown = true };
         }
     }
 

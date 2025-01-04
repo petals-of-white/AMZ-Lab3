@@ -22,8 +22,6 @@ public abstract class ROIViewModel : SimpleNotifier
         ToggleROICommand = new RelayCommand(ToggleROI);
     }
 
-    public abstract IHistogram<short> Histogram { get; }
-
     public bool IsActive
     {
         get => isActive; set

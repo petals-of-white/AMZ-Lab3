@@ -16,10 +16,9 @@
         <converters:VisibilityConverter x:Key="visibilityConverter" />
         <converters:ManyBoolConverter x:Key="manyBoolConverter" />
         <viewmodels:DicomViewModel x:Key="axialViewModel" CurrentPlane="Axial" />
-        <viewmodels:DicomViewModel x:Key="coronalViewMode" CurrentPlane="Coronal" />
-        <viewmodels:DicomViewModel x:Key="sagittalViewModel" CurrentPlane="Saggital" />
         <viewmodels:ImageStatisticsViewModel x:Key="statistics1DViewModel" />
         <viewmodels:ImageStatistics2DViewModel x:Key="statistics2DViewModel" />
+        <viewmodels:HistogramViewModel x:Key="histogramViewModel" />
     </Window.Resources>
 
     <StackPanel x:Name="mainPanel" Orientation="Vertical">
@@ -37,7 +36,6 @@
                 Background="#FFCAEFB9"
                 Content="Зона дослідження"
                 Click="RoiBtn_Click" />
-            <Button x:Name="toggleStatBtn" Click="toggleStatBtn_Click"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal">
@@ -52,13 +50,9 @@
                 </Grid.ColumnDefinitions>
 
                 <local:DicomGLViewer x:Name="axialViewer" Grid.Column="0" Grid.Row="0" ViewModel="{StaticResource axialViewModel}" />
-
-                <local:DicomGLViewer x:Name="coronalViewer" Grid.Row="0" Grid.Column="1" ViewModel="{StaticResource coronalViewMode}" />
-
-                <local:DicomGLViewer x:Name="sagittalViewer" Grid.Row="1" Grid.Column="0" ViewModel="{StaticResource sagittalViewModel}" />
             </Grid>
 
-            <StackPanel Width="200"  DockPanel.Dock="Right" Orientation="Vertical">
+            <StackPanel Width="280"  DockPanel.Dock="Right" Orientation="Vertical">
 
                 <Label Target="{Binding ElementName=axialSlider}" Content="{Binding ElementName=axialSlider, Path=Value}" ContentStringFormat="Axial slice {0}" ></Label>
                 <Slider TickFrequency="1"
@@ -67,8 +61,15 @@
                         Minimum="1"
                         Maximum="{Binding DicomData.Depth}"
                         x:Name="axialSlider"
-                        Value="{Binding CurrentSlice}" />
-                <Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
+                        Value="{Binding CurrentSlice}">
+                    <!--<Slider.Value>
+                        <MultiBinding>
+                            <Binding Path="CurrentSlice" />
+                            <Binding Source="{StaticResource }"
+                        </MultiBinding>
+                    </Slider.Value>-->
+                </Slider>
+                <!--<Label Target="{Binding ElementName=coronalSlider}" Content="{Binding ElementName=coronalSlider, Path=Value}" ContentStringFormat="Coronal slice {0}" ></Label>
 
                 <Slider TickPlacement="BottomRight"
                         x:Name="coronalSlider"
@@ -85,26 +86,44 @@
                     DataContext="{Binding ElementName=sagittalViewer, Path=ViewModel}"
                     Maximum="{Binding DicomData.Width}"
                     Value="{Binding CurrentSlice}"
-                    TickFrequency="1" />
-                <ScottPlot:WpfPlot x:Name="WpfHistogram1" Height="200" />
-                <CheckBox Content="Показати статистику" >
+                    TickFrequency="1" />-->
+                <CheckBox Content="Показати гістограму"
+                          DataContext="{StaticResource histogramViewModel}" IsChecked="{Binding IsShown}" />
+                <ScottPlot:WpfPlot
+                    Visibility="{Binding IsShown, Converter={StaticResource visibilityConverter}}"
+                    x:Name="WpfHistogram1"
+                    Height="280" DataContext="{StaticResource histogramViewModel}" />
+                <CheckBox Content="Показати статистичну інформацію">
                     <CheckBox.IsChecked>
                         <MultiBinding Converter="{StaticResource manyBoolConverter}" Mode="TwoWay">
                             <Binding Path="IsShown" Source="{StaticResource statistics1DViewModel}" />
                             <Binding Path="IsShown" Source="{StaticResource statistics2DViewModel}" />
-
-                            <!--<Binding Source="" Path="ImageStatsViewModel.IsShown" />
-                            <Binding Path="ImageStats2DViewModel.IsShown"/>-->
-
                         </MultiBinding>
                     </CheckBox.IsChecked>
                 </CheckBox>
-                <TextBlock 
-                    x:Name="imageStatistics" DataContext="{StaticResource statistics1DViewModel}"
+                <TextBlock
+                    x:Name="imageStats" DataContext="{StaticResource statistics1DViewModel}"
+                    d:Visibility="Visible"
                     Visibility="{Binding IsShown, Converter={StaticResource visibilityConverter}}">
-                    
-                    <Run Text="{Binding Path=Mean, Mode=OneWay, StringFormat='Математичне сподівання {0}'}"/>
-                    <LineBreak/>
+
+                    <Run Text="{Binding Path=Mean, Mode=OneWay, StringFormat='Математичне сподівання: {0}'}" />
+                    <LineBreak />
+                    <Run Text="{Binding Path=Variance, Mode=OneWay, StringFormat='Дисперсія: {0}'}" />
+                    <LineBreak />
+                    <Run Text="{Binding Path=Mean, Mode=OneWay, StringFormat='СКВ: {0}'}" />
+                </TextBlock>
+
+                <TextBlock
+                    x:Name="imageStats2D" DataContext="{StaticResource statistics2DViewModel}"
+                    d:Visibility="Visible"
+                    Visibility="{Binding IsShown, Converter={StaticResource visibilityConverter}}">
+
+                    <Run Text="{Binding Path=Enthropy2D, Mode=OneWay, StringFormat='Ентропія 2Д: {0}'}" />
+                    <LineBreak />
+                    <Run Text="{Binding Path=Energy2D, Mode=OneWay, StringFormat='Енергія 2Д: {0}'}" />
+                    <LineBreak />
+
+                    <Run Text="{Binding Path=InverseDifference, Mode=OneWay, StringFormat='Зворотна різниця: {0}'}" />
                 </TextBlock>
             </StackPanel>
         </StackPanel>

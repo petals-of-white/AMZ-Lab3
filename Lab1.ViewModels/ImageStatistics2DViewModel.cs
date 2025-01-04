@@ -14,7 +14,7 @@ public class ImageStatistics2DViewModel : SimpleNotifier
     {
         firstImage = [];
         secondImage = [];
-        MaxAllowedValue = 1024;
+        MaxAllowedValue = 1150;
     }
 
     public ImageStatistics2DViewModel(IReadOnlyCollection<ushort> first, IReadOnlyCollection<ushort> second, ushort maxAllowedValue)
@@ -26,7 +26,7 @@ public class ImageStatistics2DViewModel : SimpleNotifier
 
     public double Energy2D => probabilityMatrix.Enumerate(Zeros.Include).Select(p => Math.Pow(p, 2)).Sum();
 
-    public double Enthropy2D => probabilityMatrix.Enumerate(Zeros.Include).Select(p => p * Math.Log2(p)).Sum();
+    public double Enthropy2D => probabilityMatrix.Enumerate(Zeros.AllowSkip).Where(p => p != 0).Select(p => p * Math.Log2(p)).Sum();
 
     public IReadOnlyCollection<ushort> FirstImage
     {
@@ -101,7 +101,7 @@ public class ImageStatistics2DViewModel : SimpleNotifier
 
     private void FillProbabilityMatrix(ushort maxAllowedValue)
     {
-        probabilityMatrix = Matrix<double>.Build.Dense(maxAllowedValue + 1, maxAllowedValue + 1);
+        probabilityMatrix = Matrix<double>.Build.Dense(maxAllowedValue, maxAllowedValue);
         var pairs = firstImage.Zip(secondImage).ToArray();
         pairs.Each(pair => probabilityMatrix [pair.First, pair.Second]++);
         probabilityMatrix.MapInplace(v => v / pairs.Length);
