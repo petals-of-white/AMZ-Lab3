@@ -15,7 +15,6 @@
         <converters:VisibilityConverter x:Key="visibilityConverter" />
         <converters:RectangleToWPFCoordsConverter x:Key="rectangleConverter" />
         <converters:RoiToInfoLayoutCoordsConverter x:Key="overlayCoordsConverter" />
-        <converters:RegionOfInterestToText x:Key="roiToTextConverter" />
     </UserControl.Resources>
     <Canvas x:Name="canvas" MouseLeftButtonDown="DisplayRegionClick">
         <openTK:GLWpfControl
@@ -35,19 +34,5 @@
             Width="{Binding ROIViewModel.Region.Width}"
             Canvas.Left="{Binding ROIViewModel.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
             Canvas.Top="{Binding ROIViewModel.Region, Converter={StaticResource rectangleConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}" />
-        <!--<Border BorderBrush="Red"
-                BorderThickness="2"
-                Visibility="{Binding ROIViewModel.IsShown, Converter={StaticResource visibilityConverter}}"
-                d:Canvas.Top="50"
-                d:Canvas.Left="175"
-                Canvas.Left="{Binding ROIViewModel.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Left}}"
-                Canvas.Top="{Binding ROIViewModel.Region, Converter={StaticResource overlayCoordsConverter}, ConverterParameter={x:Static converters:WPFCoord.Top}}">
-            --><!--<TextBlock
-                Height="35" Width="100"
-                Foreground="White"
-                Background="#90FFFF00"
-                d:Text="ROI Info"
-                Text="{Binding ROIInfo, Converter={StaticResource roiToTextConverter}}" />--><!--
-        </Border>-->
     </Canvas>
 </UserControl>

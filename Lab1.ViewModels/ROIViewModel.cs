@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.CommandWpf;
 using Lab1.Models.Histogram;
-using Lab1.Models.Tools.ROI;
-using Lab1.ViewModels.Tools.ROI;
 
 namespace Lab1.ViewModels;
 
