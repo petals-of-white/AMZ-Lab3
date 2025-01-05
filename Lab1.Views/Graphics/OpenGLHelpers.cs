@@ -42,15 +42,15 @@ public static class OpenGLHelpers
 
     public static void ThrowIfGLError()
     {
-        var error = GL.GetError();
-        switch (error)
-        {
-            case ErrorCode.NoError:
+        //var error = GL.GetError();
+        //switch (error)
+        //{
+        //    case ErrorCode.NoError:
 
-                break;
+        //        break;
 
-            case (var other):
-                throw new Exception(Enum.GetName(other));
-        }
+        //    case (var other):
+        //        throw new Exception(Enum.GetName(other));
+        //}
     }
 }

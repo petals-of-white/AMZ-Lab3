@@ -50,7 +50,7 @@ public partial class DicomGLViewer : UserControl
 
         GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
         {
-            Debug.WriteLine($"OpenGL Debug: {Marshal.PtrToStringAnsi(message)}");
+            Debug.WriteLine($"OpenGL Debug: Source = {source}, type={type}, severity={severity}, {Marshal.PtrToStringAnsi(message)}");
         }, IntPtr.Zero);
 
         return openTkControl.Context!;
